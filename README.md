@@ -1,14 +1,12 @@
-![Version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/ABAP-Strust/src/zcl_strust2.clas.abap/c_version&label=Version&color=blue)
+![Version](https://img.shields.io/endpoint?url=https://shield.abappm.com/github/abapPM/ABAP-Strust/src/zcl_strust2.clas.abap/c_version&label=Version&color=blue)
 
-[![License](https://img.shields.io/github/license/Marc-Bernard-Tools/ABAP-Strust?label=License&color=success)](LICENSE)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=success)](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md)
-[![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/ABAP-Strust)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/ABAP-Strust)
+[![License](https://img.shields.io/github/license/abapPM/ABAP-Strust?label=License&color=success)](LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=success)](https://github.com/abapPM/.github/blob/main/CODE_OF_CONDUCT.md)
+[![REUSE Status](https://api.reuse.software/badge/github.com/abapPM/ABAP-Strust)](https://api.reuse.software/info/github.com/abapPM/ABAP-Strust)
 
 # Trust Management
 
 Easy to use class for adding, updating, or removing certificates from ABAP Trust Management (transaction STRUST)
-
-Made by [Marc Bernard Tools](https://marcbernardtools.com/) giving back to the [SAP Community](https://community.sap.com/)
 
 NO WARRANTIES, [MIT License](LICENSE)
 
@@ -49,7 +47,7 @@ TRY.
       " Root and intermediate certificates
       " lo_strust->add( _get_certificate_ca( ) )
       " lo_strust->add( _get_certificate_ica( ) )
-      lo_strust->add( _get_certificate_mbt( ) ). 
+      lo_strust->add( _get_certificate_mbt( ) ).
       lo_strust->update( ).
     ENDIF.
 
@@ -74,20 +72,25 @@ SAP Basis 7.02 or higher
 
 ## Installation
 
-You can install this module using [abapGit](https://github.com/abapGit/abapGit) either creating a new online repository for https://github.com/Marc-Bernard-Tools/ABAP-Strust or downloading the repository [ZIP file](https://github.com/Marc-Bernard-Tools/ABAP-Strust/archive/main.zip) and creating a new offline repository.
+Install `strust` as a global module in your system using [apm](https://abappm.com).
 
-Recommended SAP package: `$ABAP-STRUST`.
+or
+
+Specify the `strust` module as a dependency in your project and import it to your namespace using [apm](https://abappm.com).
 
 ## Contributions
 
-All contributions are welcome! Read our [Contribution Guidelines](CONTRIBUTING.md), fork this repo, and create a pull request.
+All contributions are welcome! Read our [Contribution Guidelines](https://github.com/abapPM/ABAP-Strust/blob/main/CONTRIBUTING.md), fork this repo, and create a pull request.
+
+You can install the developer version of ABAP STRUST using [abapGit](https://github.com/abapGit/abapGit) by creating a new online repository for `https://github.com/abapPM/ABAP-Strust`.
+
+Recommended SAP package: `$STRUST`
 
 ## About
 
-Made with :heart: in Canada
+Made with ❤ in Canada
 
-Copyright 2024 Marc Bernard <https://marcbernardtools.com/>
+Copyright 2025 apm.to Inc. <https://apm.to>
 
-Follow [@marcfbe](https://twitter.com/marcfbe) on Twitter
+Follow [@marcf.be](https://bsky.app/profile/marcf.be) on Blueksy and [@marcfbe](https://linkedin.com/in/marcfbe) or LinkedIn
 
-<p><a href="https://marcbernardtools.com/"><img width="160" height="65" src="https://marcbernardtools.com/info/MBT_Logo_640x250_on_Gray.png" alt="MBT Logo"></a></p>

@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = "**/*"
+SPDX-FileCopyrightText = "2025 apm.to Inc. <https://apm.to>"
+SPDX-License-Identifier = "MIT"
