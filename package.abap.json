@@ -1,0 +1,42 @@
+{
+  "name": "xxx",
+  "version": "1.0.0",
+  "description": "XXX",
+  "type": "module",
+  "keywords": [
+    "abap",
+    "apm",
+    "module"
+  ],
+  "homepage": "https://abappm.com",
+  "bugs": {
+    "url": "https://github.com/abapPM/ABAP-XXX"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Marc Bernard",
+    "url": "https://abappm.com",
+    "email": "marc@abappm.com"
+  },
+  "maintainers": [
+    {
+      "name": "Marc Bernard",
+      "url": "https://github.com/mbtools",
+      "email": "marc@abappm.com"
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/abapPM/ABAP-XXX"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/abapPM"
+  },
+  "dependencies": {
+    "error": "^1.0.0"
+  },
+  "engines": {
+    "abap": ">=7.50",
+    "apm": ">=1"
+  }
+}
