@@ -6,12 +6,36 @@ CLASS zcl_strust2 DEFINITION
 ************************************************************************
 * Trust Management
 *
-* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* Add, update, or remove certificates from ABAP Trust Management
+*
+* Copyright 2024 apm.to Inc. <https://apm.to>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '1.1.0' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.0.0' ##NEEDED.
+
+    CONSTANTS:
+      BEGIN OF c_context,
+        prog TYPE psecontext VALUE 'PROG', " Namespace of transaction STRUST
+        ssfa TYPE psecontext VALUE 'SSFA', " Namespace of table SSFARGS
+        sslc TYPE psecontext VALUE 'SSLC', " Namespace of table STRUSTSSL
+        ssls TYPE psecontext VALUE 'SSLS', " Namespace of table STRUSTSSLS
+        wsse TYPE psecontext VALUE 'WSSE', " Namespace of table STRUSTWSSE
+        smim TYPE psecontext VALUE 'SMIM', " Namespace of table STRUSTSMIM
+      END OF c_context,
+      BEGIN OF c_application,
+        syst   TYPE ssfapplssl VALUE '<SYST>', " System PSE
+        sncs   TYPE ssfapplssl VALUE '<SNCS>', " SNC SAP Cryptolib
+        file   TYPE ssfapplssl VALUE '<FILE>', " Files
+        ssls   TYPE ssfapplssl VALUE '<SSLS>', " SSL backward compatibility
+        dfault TYPE ssfapplssl VALUE 'DFAULT', " SSL Client/Server: Standard
+        anonym TYPE ssfapplssl VALUE 'ANONYM', " SSL Client: Anonymous
+        sapsup TYPE ssfapplssl VALUE 'SAPSUP', " SSL Client: SAP Support Portal
+        wsse   TYPE ssfapplssl VALUE 'WSSE',   " SSL Client: Web Service Security
+        wsscrt TYPE ssfapplssl VALUE 'WSSCRT',  " Other System Encryption Certificates
+        wwkey  TYPE ssfapplssl VALUE 'WSSKEY',   " WS Security Keys
+      END OF c_application.
 
     TYPES:
       ty_line        TYPE c LENGTH 80,
@@ -28,88 +52,103 @@ CLASS zcl_strust2 DEFINITION
       END OF ty_certattr,
       ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH DEFAULT KEY.
 
+    CLASS-METHODS create
+      IMPORTING
+        !context      TYPE psecontext
+        !application  TYPE ssfappl
+        !password     TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO zcl_strust2
+      RAISING
+        zcx_error.
+
     METHODS constructor
       IMPORTING
-        !iv_context TYPE psecontext
-        !iv_applic  TYPE ssfappl
+        !context     TYPE psecontext
+        !application TYPE ssfappl
+        !password    TYPE string OPTIONAL
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS load
       IMPORTING
-        !iv_create TYPE abap_bool DEFAULT abap_false
-        !iv_id     TYPE ssfid OPTIONAL
-        !iv_org    TYPE string OPTIONAL
+        !create TYPE abap_bool DEFAULT abap_false
+        !id     TYPE ssfid OPTIONAL
+        !org    TYPE string OPTIONAL
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS add
       IMPORTING
-        !it_certificate TYPE ty_certificate
+        !certificate TYPE ty_certificate
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS get_own_certificate
       RETURNING
-        VALUE(rs_result) TYPE ty_certattr
+        VALUE(result) TYPE ty_certattr
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS get_certificate_list
       RETURNING
-        VALUE(rt_result) TYPE ty_certattr_tt
+        VALUE(result) TYPE ty_certattr_tt
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS remove
       IMPORTING
-        VALUE(iv_subject) TYPE string
+        VALUE(subject) TYPE string
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS update
       RETURNING
-        VALUE(rt_result) TYPE ty_certattr_tt
+        VALUE(result) TYPE ty_certattr_tt
       RAISING
-        zcx_strust2.
+        zcx_error.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     DATA:
-      mv_context   TYPE psecontext,
-      mv_applic    TYPE ssfappl,
-      mv_psename   TYPE ssfpsename,
-      mv_psetext   TYPE strustappltxt ##NEEDED,
-      mv_distrib   TYPE ssfflag,
-      mv_tempfile  TYPE localfile,
-      mv_id        TYPE ssfid,
-      mv_profile   TYPE ssfpab,
-      mv_profilepw TYPE ssfpabpw,
-      mv_cert_own  TYPE xstring,
-      mt_cert_new  TYPE ty_certattr_tt,
-      ms_cert_old  TYPE ty_certattr,
-      mt_cert_old  TYPE ty_certattr_tt,
-      mv_save      TYPE abap_bool.
+      context       TYPE psecontext,
+      applic        TYPE ssfappl,
+      psename       TYPE ssfpsename,
+      psetext       TYPE strustappltxt ##NEEDED,
+      distrib       TYPE ssfflag,
+      tempfile      TYPE localfile,
+      id            TYPE ssfid,
+      profile       TYPE ssfpab,
+      profilepw     TYPE ssfpabpw,
+      cert_own      TYPE xstring,
+      certs_new     TYPE ty_certattr_tt,
+      cert_current  TYPE ty_certattr,
+      certs_current TYPE ty_certattr_tt,
+      is_dirty      TYPE abap_bool.
 
     METHODS _create
       IMPORTING
-        !iv_id  TYPE ssfid OPTIONAL
-        !iv_org TYPE string OPTIONAL
+        !id  TYPE ssfid OPTIONAL
+        !org TYPE string OPTIONAL
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS _lock
       RAISING
-        zcx_strust2.
+        zcx_error.
+
+    METHODS _profile
+      RAISING
+        zcx_error.
 
     METHODS _unlock
       RAISING
-        zcx_strust2.
+        zcx_error.
 
     METHODS _save
       RAISING
-        zcx_strust2.
+        zcx_error.
 
 ENDCLASS.
 
@@ -121,33 +160,33 @@ CLASS zcl_strust2 IMPLEMENTATION.
   METHOD add.
 
     DATA:
+      lv_base64   TYPE string,
       lv_certb64  TYPE string,
       lo_certobj  TYPE REF TO cl_abap_x509_certificate,
       ls_cert_new TYPE ty_certattr.
 
-    FIELD-SYMBOLS:
-      <lv_data> TYPE any.
+    FIELD-SYMBOLS <data> TYPE any.
 
-    CONCATENATE LINES OF it_certificate INTO lv_certb64.
+    CONCATENATE LINES OF certificate INTO lv_certb64.
 
     " Remove Header and Footer
     TRY.
-        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN lv_certb64 SUBMATCHES lv_certb64.
+        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN lv_certb64 SUBMATCHES lv_base64.
         IF sy-subrc = 0.
-          ASSIGN lv_certb64 TO <lv_data>.
+          ASSIGN lv_base64 TO <data>.
           ASSERT sy-subrc = 0.
         ELSE.
-          zcx_strust2=>raise( 'Inconsistent certificate format'(010) ).
+          zcx_error=>raise( 'Inconsistent certificate format'(010) ).
         ENDIF.
       CATCH cx_sy_regex_too_complex.
         " e.g. multiple PEM frames in file
-        zcx_strust2=>raise( 'Inconsistent certificate format'(010) ).
+        zcx_error=>raise( 'Inconsistent certificate format'(010) ).
     ENDTRY.
 
     TRY.
         CREATE OBJECT lo_certobj
           EXPORTING
-            if_certificate = <lv_data>.
+            if_certificate = <data>.
 
         ls_cert_new-certificate = lo_certobj->get_certificate( ).
 
@@ -168,16 +207,16 @@ CLASS zcl_strust2 IMPLEMENTATION.
             OTHERS              = 5.
         IF sy-subrc <> 0.
           _unlock( ).
-          zcx_strust2=>raise_t100( ).
+          zcx_error=>raise_t100( ).
         ENDIF.
 
         ls_cert_new-datefrom = ls_cert_new-validfrom(8).
         ls_cert_new-dateto   = ls_cert_new-validto(8).
-        APPEND ls_cert_new TO mt_cert_new.
+        APPEND ls_cert_new TO certs_new.
 
       CATCH cx_abap_x509_certificate.
         _unlock( ).
-        zcx_strust2=>raise_t100( ).
+        zcx_error=>raise_t100( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -185,23 +224,36 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
   METHOD constructor.
 
-    mv_context = iv_context.
-    mv_applic  = iv_applic.
+    me->context = context.
+    me->applic  = application.
+    profilepw   = password.
 
     CALL FUNCTION 'SSFPSE_FILENAME'
       EXPORTING
-        context       = mv_context
-        applic        = mv_applic
+        context       = context
+        applic        = applic
       IMPORTING
-        psename       = mv_psename
-        psetext       = mv_psetext
-        distrib       = mv_distrib
+        psename       = psename
+        psetext       = psetext
+        distrib       = distrib
+        profile       = profile
       EXCEPTIONS
         pse_not_found = 1
         OTHERS        = 2.
     IF sy-subrc <> 0.
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD create.
+
+    CREATE OBJECT result
+      EXPORTING
+        context     = context
+        application = application
+        password    = password.
 
   ENDMETHOD.
 
@@ -209,17 +261,19 @@ CLASS zcl_strust2 IMPLEMENTATION.
   METHOD get_certificate_list.
 
     DATA:
-      lt_certlist TYPE ssfbintab,
-      ls_cert_old TYPE ty_certattr.
+      certlist    TYPE ssfbintab,
+      certificate TYPE ty_certattr.
 
-    FIELD-SYMBOLS <lv_certlist> LIKE LINE OF lt_certlist.
+    FIELD-SYMBOLS <certlist> LIKE LINE OF certlist.
+
+    _profile( ).
 
     CALL FUNCTION 'SSFC_GET_CERTIFICATELIST'
       EXPORTING
-        profile               = mv_profile
-        profilepw             = mv_profilepw
+        profile               = profile
+        profilepw             = profilepw
       IMPORTING
-        certificatelist       = lt_certlist
+        certificatelist       = certlist
       EXCEPTIONS
         ssf_krn_error         = 1
         ssf_krn_nomemory      = 2
@@ -229,22 +283,22 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS                = 6.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
     ENDIF.
 
-    LOOP AT lt_certlist ASSIGNING <lv_certlist>.
+    LOOP AT certlist ASSIGNING <certlist>.
 
-      CLEAR ls_cert_old.
+      CLEAR certificate.
 
       CALL FUNCTION 'SSFC_PARSE_CERTIFICATE'
         EXPORTING
-          certificate         = <lv_certlist>
+          certificate         = <certlist>
         IMPORTING
-          subject             = ls_cert_old-subject
-          issuer              = ls_cert_old-issuer
-          serialno            = ls_cert_old-serialno
-          validfrom           = ls_cert_old-validfrom
-          validto             = ls_cert_old-validto
+          subject             = certificate-subject
+          issuer              = certificate-issuer
+          serialno            = certificate-serialno
+          validfrom           = certificate-validfrom
+          validto             = certificate-validto
         EXCEPTIONS
           ssf_krn_error       = 1
           ssf_krn_nomemory    = 2
@@ -253,30 +307,30 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS              = 5.
       IF sy-subrc <> 0.
         _unlock( ).
-        zcx_strust2=>raise_t100( ).
+        zcx_error=>raise_t100( ).
       ENDIF.
 
-      ls_cert_old-datefrom = ls_cert_old-validfrom(8).
-      ls_cert_old-dateto   = ls_cert_old-validto(8).
-      APPEND ls_cert_old TO mt_cert_old.
+      certificate-datefrom = certificate-validfrom(8).
+      certificate-dateto   = certificate-validto(8).
+      APPEND certificate TO certs_current.
 
     ENDLOOP.
 
-    rt_result = mt_cert_old.
+    result = certs_current.
 
   ENDMETHOD.
 
 
   METHOD get_own_certificate.
 
-    mv_profile = mv_tempfile.
+    _profile( ).
 
     CALL FUNCTION 'SSFC_GET_OWNCERTIFICATE'
       EXPORTING
-        profile               = mv_profile
-        profilepw             = mv_profilepw
+        profile               = profile
+        profilepw             = profilepw
       IMPORTING
-        certificate           = mv_cert_own
+        certificate           = cert_own
       EXCEPTIONS
         ssf_krn_error         = 1
         ssf_krn_nomemory      = 2
@@ -286,18 +340,18 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS                = 6.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
     ENDIF.
 
     CALL FUNCTION 'SSFC_PARSE_CERTIFICATE'
       EXPORTING
-        certificate         = mv_cert_own
+        certificate         = cert_own
       IMPORTING
-        subject             = ms_cert_old-subject
-        issuer              = ms_cert_old-issuer
-        serialno            = ms_cert_old-serialno
-        validfrom           = ms_cert_old-validfrom
-        validto             = ms_cert_old-validto
+        subject             = cert_current-subject
+        issuer              = cert_current-issuer
+        serialno            = cert_current-serialno
+        validfrom           = cert_current-validfrom
+        validto             = cert_current-validto
       EXCEPTIONS
         ssf_krn_error       = 1
         ssf_krn_nomemory    = 2
@@ -306,40 +360,40 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS              = 5.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
     ENDIF.
 
-    ms_cert_old-datefrom = ms_cert_old-validfrom(8).
-    ms_cert_old-dateto   = ms_cert_old-validto(8).
+    cert_current-datefrom = cert_current-validfrom(8).
+    cert_current-dateto   = cert_current-validto(8).
 
-    rs_result = ms_cert_old.
+    result = cert_current.
 
   ENDMETHOD.
 
 
   METHOD load.
 
-    CLEAR mv_save.
+    CLEAR is_dirty.
 
     _lock( ).
 
     CALL FUNCTION 'SSFPSE_LOAD'
       EXPORTING
-        psename           = mv_psename
+        psename           = psename
       IMPORTING
-        id                = mv_id
-        fname             = mv_tempfile
+        id                = me->id
+        fname             = tempfile
       EXCEPTIONS
         authority_missing = 1
         database_failed   = 2
         OTHERS            = 3.
     IF sy-subrc <> 0.
-      IF iv_create = abap_true.
+      IF create = abap_true.
         _create(
-          iv_id  = iv_id
-          iv_org = iv_org ).
+          id  = id
+          org = org ).
       ELSE.
-        zcx_strust2=>raise_t100( ).
+        zcx_error=>raise_t100( ).
       ENDIF.
     ENDIF.
 
@@ -348,19 +402,18 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
   METHOD remove.
 
-    FIELD-SYMBOLS:
-      <ls_cert_old> LIKE LINE OF mt_cert_old.
+    FIELD-SYMBOLS <cert> LIKE LINE OF certs_current.
 
     " Remove certificate
-    LOOP AT mt_cert_old ASSIGNING <ls_cert_old> WHERE subject = iv_subject.
+    LOOP AT certs_current ASSIGNING <cert> WHERE subject = subject.
 
       CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
         EXPORTING
-          profile               = mv_profile
-          profilepw             = mv_profilepw
-          subject               = <ls_cert_old>-subject
-          issuer                = <ls_cert_old>-issuer
-          serialno              = <ls_cert_old>-serialno
+          profile               = profile
+          profilepw             = profilepw
+          subject               = <cert>-subject
+          issuer                = <cert>-issuer
+          serialno              = <cert>-serialno
         EXCEPTIONS
           ssf_krn_error         = 1
           ssf_krn_nomemory      = 2
@@ -370,10 +423,11 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS                = 6.
       IF sy-subrc <> 0.
         _unlock( ).
-        zcx_strust2=>raise_t100( ).
+        zcx_error=>raise_t100( ).
       ENDIF.
 
-      mv_save = abap_true.
+      is_dirty = abap_true.
+
     ENDLOOP.
 
     _save( ).
@@ -386,23 +440,23 @@ CLASS zcl_strust2 IMPLEMENTATION.
   METHOD update.
 
     FIELD-SYMBOLS:
-      <ls_cert_old> LIKE LINE OF mt_cert_old,
-      <ls_cert_new> LIKE LINE OF mt_cert_new.
+      <cert>     LIKE LINE OF certs_current,
+      <cert_new> LIKE LINE OF certs_new.
 
     " Remove expired certificates
-    LOOP AT mt_cert_old ASSIGNING <ls_cert_old>.
+    LOOP AT certs_current ASSIGNING <cert>.
 
-      LOOP AT mt_cert_new ASSIGNING <ls_cert_new> WHERE subject = <ls_cert_old>-subject.
+      LOOP AT certs_new ASSIGNING <cert_new> WHERE subject = <cert>-subject.
 
-        IF <ls_cert_new>-dateto > <ls_cert_old>-dateto.
+        IF <cert_new>-dateto > <cert>-dateto.
           " Certificate is newer, so remove the old certificate
           CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
             EXPORTING
-              profile               = mv_profile
-              profilepw             = mv_profilepw
-              subject               = <ls_cert_old>-subject
-              issuer                = <ls_cert_old>-issuer
-              serialno              = <ls_cert_old>-serialno
+              profile               = profile
+              profilepw             = profilepw
+              subject               = <cert>-subject
+              issuer                = <cert>-issuer
+              serialno              = <cert>-serialno
             EXCEPTIONS
               ssf_krn_error         = 1
               ssf_krn_nomemory      = 2
@@ -412,13 +466,13 @@ CLASS zcl_strust2 IMPLEMENTATION.
               OTHERS                = 6.
           IF sy-subrc <> 0.
             _unlock( ).
-            zcx_strust2=>raise_t100( ).
+            zcx_error=>raise_t100( ).
           ENDIF.
 
-          mv_save = abap_true.
+          is_dirty = abap_true.
         ELSE.
           " Certificate already exists, no update necessary
-          DELETE mt_cert_new.
+          DELETE certs_new.
         ENDIF.
 
       ENDLOOP.
@@ -426,13 +480,13 @@ CLASS zcl_strust2 IMPLEMENTATION.
     ENDLOOP.
 
     " Add new certificates to PSE
-    LOOP AT mt_cert_new ASSIGNING <ls_cert_new>.
+    LOOP AT certs_new ASSIGNING <cert_new>.
 
       CALL FUNCTION 'SSFC_PUT_CERTIFICATE'
         EXPORTING
-          profile             = mv_profile
-          profilepw           = mv_profilepw
-          certificate         = <ls_cert_new>-certificate
+          profile             = profile
+          profilepw           = profilepw
+          certificate         = <cert_new>-certificate
         EXCEPTIONS
           ssf_krn_error       = 1
           ssf_krn_nomemory    = 2
@@ -442,17 +496,17 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS              = 6.
       IF sy-subrc <> 0.
         _unlock( ).
-        zcx_strust2=>raise_t100( ).
+        zcx_error=>raise_t100( ).
       ENDIF.
 
-      mv_save = abap_true.
+      is_dirty = abap_true.
     ENDLOOP.
 
     _save( ).
 
     _unlock( ).
 
-    rt_result = mt_cert_new.
+    result = certs_new.
 
   ENDMETHOD.
 
@@ -460,50 +514,50 @@ CLASS zcl_strust2 IMPLEMENTATION.
   METHOD _create.
 
     DATA:
-      lv_license_num TYPE c LENGTH 10,
-      lv_id          TYPE ssfid,
-      lv_subject     TYPE certsubjct,
-      lv_psepath     TYPE trfile.
+      license_num TYPE c LENGTH 10,
+      new_id      TYPE ssfid,
+      subject     TYPE certsubjct,
+      psepath     TYPE trfile.
 
 *   Create new PSE (using RSA-SHA256 2048 which is the default in STRUST in recent releases)
-    IF iv_id IS INITIAL.
-      CASE mv_applic.
+    IF id IS INITIAL.
+      CASE applic.
         WHEN 'DFAULT'.
-          lv_id = `CN=%SID SSL client SSL Client (Standard), ` &&
+          new_id = `CN=%SID SSL client SSL Client (Standard), ` &&
                   `OU=I%LIC, OU=SAP Web AS, O=SAP Trust Community, C=DE` ##NO_TEXT.
         WHEN 'ANONYM'.
-          lv_id = 'CN=anonymous' ##NO_TEXT.
+          new_id = 'CN=anonymous' ##NO_TEXT.
       ENDCASE.
     ELSE.
-      lv_id = iv_id.
+      new_id = id.
     ENDIF.
 
     CALL FUNCTION 'SLIC_GET_LICENCE_NUMBER'
       IMPORTING
-        license_number = lv_license_num.
+        license_number = license_num.
 
-    REPLACE '%SID' WITH sy-sysid INTO lv_id.
-    REPLACE '%LIC' WITH lv_license_num INTO lv_id.
-    REPLACE '%ORG' WITH iv_org INTO lv_id.
-    CONDENSE lv_id.
+    REPLACE '%SID' WITH sy-sysid INTO new_id.
+    REPLACE '%LIC' WITH license_num INTO new_id.
+    REPLACE '%ORG' WITH org INTO new_id.
+    CONDENSE new_id.
 
-    lv_subject = lv_id.
+    subject = new_id.
 
     CALL FUNCTION 'SSFPSE_CREATE'
       EXPORTING
-        dn                = lv_subject
+        dn                = subject
         alg               = 'R'
         keylen            = 2048
       IMPORTING
-        psepath           = lv_psepath
+        psepath           = psepath
       EXCEPTIONS
         ssf_unknown_error = 1
         OTHERS            = 2.
     IF sy-subrc <> 0.
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
     ENDIF.
 
-    mv_tempfile = lv_psepath.
+    tempfile = psepath.
 
     _save( ).
 
@@ -514,14 +568,27 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
     CALL FUNCTION 'SSFPSE_ENQUEUE'
       EXPORTING
-        psename         = mv_psename
+        psename         = psename
       EXCEPTIONS
         database_failed = 1
         foreign_lock    = 2
         internal_error  = 3
         OTHERS          = 4.
     IF sy-subrc <> 0.
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _profile.
+
+    IF tempfile IS NOT INITIAL.
+      profile = tempfile.
+    ENDIF.
+
+    IF profile IS INITIAL.
+      zcx_error=>raise( 'Missing profile. Call "load" first' ).
     ENDIF.
 
   ENDMETHOD.
@@ -529,19 +596,19 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
   METHOD _save.
 
-    DATA lv_credname TYPE icm_credname.
+    DATA cred_name TYPE icm_credname.
 
-    CHECK mv_save = abap_true.
+    CHECK is_dirty = abap_true.
 
     " Store PSE
     CALL FUNCTION 'SSFPSE_STORE'
       EXPORTING
-        fname             = mv_tempfile
-        psepin            = mv_profilepw
-        psename           = mv_psename
-        id                = mv_id
+        fname             = tempfile
+        psepin            = profilepw
+        psename           = psename
+        id                = id
         b_newdn           = abap_false
-        b_distribute      = mv_distrib
+        b_distribute      = distrib
       EXCEPTIONS
         file_load_failed  = 1
         storing_failed    = 2
@@ -549,15 +616,15 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS            = 4.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
     ENDIF.
 
-    lv_credname = mv_psename.
+    cred_name = psename.
 
     CALL FUNCTION 'ICM_SSL_PSE_CHANGED'
       EXPORTING
         global              = 1
-        cred_name           = lv_credname
+        cred_name           = cred_name
       EXCEPTIONS
         icm_op_failed       = 1
         icm_get_serv_failed = 2
@@ -576,24 +643,24 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
     " Drop temporary file
     TRY.
-        DELETE DATASET mv_tempfile.
+        DELETE DATASET tempfile.
       CATCH cx_sy_file_open.
-        zcx_strust2=>raise( 'Error deleting file'(020) && | { mv_tempfile }| ).
+        zcx_error=>raise( 'Error deleting file'(020) && | { tempfile }| ).
       CATCH cx_sy_file_authority.
-        zcx_strust2=>raise( 'Not authorized to delete file'(030) && | { mv_tempfile }| ).
+        zcx_error=>raise( 'Not authorized to delete file'(030) && | { tempfile }| ).
     ENDTRY.
 
     " Unlock PSE
     CALL FUNCTION 'SSFPSE_DEQUEUE'
       EXPORTING
-        psename         = mv_psename
+        psename         = psename
       EXCEPTIONS
         database_failed = 1
         foreign_lock    = 2
         internal_error  = 3
         OTHERS          = 4.
     IF sy-subrc <> 0.
-      zcx_strust2=>raise_t100( ).
+      zcx_error=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.
