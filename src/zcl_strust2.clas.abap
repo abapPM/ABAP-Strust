@@ -98,7 +98,7 @@ CLASS zcl_strust2 DEFINITION
 
     METHODS remove
       IMPORTING
-        VALUE(subject) TYPE string
+        !subject TYPE string
       RAISING
         zcx_error.
 
