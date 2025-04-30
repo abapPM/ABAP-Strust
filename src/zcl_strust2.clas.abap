@@ -16,7 +16,7 @@ CLASS zcl_strust2 DEFINITION
     CONSTANTS c_version TYPE string VALUE '2.0.0' ##NEEDED.
 
     CONSTANTS:
-      BEGIN OF c_context ##NEEDED,
+      BEGIN OF c_context,
         prog TYPE psecontext VALUE 'PROG', " Namespace of transaction STRUST
         ssfa TYPE psecontext VALUE 'SSFA', " Namespace of table SSFARGS
         sslc TYPE psecontext VALUE 'SSLC', " Namespace of table STRUSTSSL
@@ -24,7 +24,7 @@ CLASS zcl_strust2 DEFINITION
         wsse TYPE psecontext VALUE 'WSSE', " Namespace of table STRUSTWSSE
         smim TYPE psecontext VALUE 'SMIM', " Namespace of table STRUSTSMIM
       END OF c_context,
-      BEGIN OF c_application ##NEEDED,
+      BEGIN OF c_application,
         syst   TYPE ssfapplssl VALUE '<SYST>', " System PSE
         sncs   TYPE ssfapplssl VALUE '<SNCS>', " SNC SAP Cryptolib
         file   TYPE ssfapplssl VALUE '<FILE>', " Files
@@ -39,7 +39,7 @@ CLASS zcl_strust2 DEFINITION
 
     TYPES:
       ty_line        TYPE c LENGTH 80,
-      ty_certificate TYPE STANDARD TABLE OF ty_line WITH KEY table_line,
+      ty_certificate TYPE STANDARD TABLE OF ty_line WITH DEFAULT KEY,
       BEGIN OF ty_certattr,
         subject     TYPE string,
         issuer      TYPE string,
@@ -50,7 +50,7 @@ CLASS zcl_strust2 DEFINITION
         dateto      TYPE d,
         certificate TYPE xstring,
       END OF ty_certattr,
-      ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH KEY subject issuer serialno validfrom validto.
+      ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH DEFAULT KEY.
 
     CLASS-METHODS create
       IMPORTING
@@ -98,7 +98,7 @@ CLASS zcl_strust2 DEFINITION
 
     METHODS remove
       IMPORTING
-        !subject TYPE string
+        VALUE(subject) TYPE string
       RAISING
         zcx_error.
 
@@ -107,6 +107,7 @@ CLASS zcl_strust2 DEFINITION
         VALUE(result) TYPE ty_certattr_tt
       RAISING
         zcx_error.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -158,15 +159,21 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
   METHOD add.
 
-    DATA cert_new TYPE ty_certattr.
+    DATA:
+      lv_base64   TYPE string,
+      lv_certb64  TYPE string,
+      lo_certobj  TYPE REF TO cl_abap_x509_certificate,
+      ls_cert_new TYPE ty_certattr.
 
-    CONCATENATE LINES OF certificate INTO DATA(certb64).
+    FIELD-SYMBOLS <data> TYPE any.
+
+    CONCATENATE LINES OF certificate INTO lv_certb64.
 
     " Remove Header and Footer
     TRY.
-        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN certb64 SUBMATCHES DATA(base64).
+        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN lv_certb64 SUBMATCHES lv_base64.
         IF sy-subrc = 0.
-          ASSIGN base64 TO FIELD-SYMBOL(<data>).
+          ASSIGN lv_base64 TO <data>.
           ASSERT sy-subrc = 0.
         ELSE.
           zcx_error=>raise( 'Inconsistent certificate format'(010) ).
@@ -177,19 +184,21 @@ CLASS zcl_strust2 IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA(certobj) = NEW cl_abap_x509_certificate( if_certificate = <data> ).
+        CREATE OBJECT lo_certobj
+          EXPORTING
+            if_certificate = <data>.
 
-        cert_new-certificate = certobj->get_certificate( ).
+        ls_cert_new-certificate = lo_certobj->get_certificate( ).
 
         CALL FUNCTION 'SSFC_PARSE_CERTIFICATE'
           EXPORTING
-            certificate         = cert_new-certificate
+            certificate         = ls_cert_new-certificate
           IMPORTING
-            subject             = cert_new-subject
-            issuer              = cert_new-issuer
-            serialno            = cert_new-serialno
-            validfrom           = cert_new-validfrom
-            validto             = cert_new-validto
+            subject             = ls_cert_new-subject
+            issuer              = ls_cert_new-issuer
+            serialno            = ls_cert_new-serialno
+            validfrom           = ls_cert_new-validfrom
+            validto             = ls_cert_new-validto
           EXCEPTIONS
             ssf_krn_error       = 1
             ssf_krn_nomemory    = 2
@@ -201,9 +210,9 @@ CLASS zcl_strust2 IMPLEMENTATION.
           zcx_error=>raise_t100( ).
         ENDIF.
 
-        cert_new-datefrom = cert_new-validfrom(8).
-        cert_new-dateto   = cert_new-validto(8).
-        APPEND cert_new TO certs_new.
+        ls_cert_new-datefrom = ls_cert_new-validfrom(8).
+        ls_cert_new-dateto   = ls_cert_new-validto(8).
+        APPEND ls_cert_new TO certs_new.
 
       CATCH cx_abap_x509_certificate.
         _unlock( ).
@@ -240,10 +249,11 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
   METHOD create.
 
-    result = NEW #(
-      context     = context
-      application = application
-      password    = password ).
+    CREATE OBJECT result
+      EXPORTING
+        context     = context
+        application = application
+        password    = password.
 
   ENDMETHOD.
 
@@ -392,8 +402,10 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
   METHOD remove.
 
+    FIELD-SYMBOLS <cert> LIKE LINE OF certs_current.
+
     " Remove certificate
-    LOOP AT certs_current ASSIGNING FIELD-SYMBOL(<cert>) WHERE subject = subject.
+    LOOP AT certs_current ASSIGNING <cert> WHERE subject = subject.
 
       CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
         EXPORTING
@@ -427,11 +439,14 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
   METHOD update.
 
-    " Remove expired certificates
-    LOOP AT certs_current ASSIGNING FIELD-SYMBOL(<cert>).
+    FIELD-SYMBOLS:
+      <cert>     LIKE LINE OF certs_current,
+      <cert_new> LIKE LINE OF certs_new.
 
-      LOOP AT certs_new ASSIGNING FIELD-SYMBOL(<cert_new>) WHERE subject = <cert>-subject.
-        DATA(tabix) = sy-tabix.
+    " Remove expired certificates
+    LOOP AT certs_current ASSIGNING <cert>.
+
+      LOOP AT certs_new ASSIGNING <cert_new> WHERE subject = <cert>-subject.
 
         IF <cert_new>-dateto > <cert>-dateto.
           " Certificate is newer, so remove the old certificate
@@ -457,7 +472,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           is_dirty = abap_true.
         ELSE.
           " Certificate already exists, no update necessary
-          DELETE certs_new INDEX tabix.
+          DELETE certs_new.
         ENDIF.
 
       ENDLOOP.
