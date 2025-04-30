@@ -18,23 +18,25 @@ CLASS zcl_strust2 DEFINITION
     CONSTANTS:
       BEGIN OF c_context ##NEEDED,
         prog TYPE psecontext VALUE 'PROG', " Namespace of transaction STRUST
+        smim TYPE psecontext VALUE 'SMIM', " Namespace of table STRUSTSMIM
         ssfa TYPE psecontext VALUE 'SSFA', " Namespace of table SSFARGS
+        ssfv TYPE psecontext VALUE 'SSFV', " Namespace of table SSFVKEYDEF
         sslc TYPE psecontext VALUE 'SSLC', " Namespace of table STRUSTSSL
         ssls TYPE psecontext VALUE 'SSLS', " Namespace of table STRUSTSSLS
         wsse TYPE psecontext VALUE 'WSSE', " Namespace of table STRUSTWSSE
-        smim TYPE psecontext VALUE 'SMIM', " Namespace of table STRUSTSMIM
       END OF c_context,
       BEGIN OF c_application ##NEEDED,
-        syst   TYPE ssfapplssl VALUE '<SYST>', " System PSE
-        sncs   TYPE ssfapplssl VALUE '<SNCS>', " SNC SAP Cryptolib
-        file   TYPE ssfapplssl VALUE '<FILE>', " Files
-        ssls   TYPE ssfapplssl VALUE '<SSLS>', " SSL backward compatibility
-        dfault TYPE ssfapplssl VALUE 'DFAULT', " SSL Client/Server: Standard
-        anonym TYPE ssfapplssl VALUE 'ANONYM', " SSL Client: Anonymous
-        sapsup TYPE ssfapplssl VALUE 'SAPSUP', " SSL Client: SAP Support Portal
-        wsse   TYPE ssfapplssl VALUE 'WSSE',   " SSL Client: Web Service Security
-        wsscrt TYPE ssfapplssl VALUE 'WSSCRT',  " Other System Encryption Certificates
-        wwkey  TYPE ssfapplssl VALUE 'WSSKEY',   " WS Security Keys
+        syst   TYPE ssfappl VALUE '<SYST>', " PROG:            System PSE
+        sncs   TYPE ssfappl VALUE '<SNCS>', " PROG:            SNC SAP Cryptolib
+        file   TYPE ssfappl VALUE '<FILE>', " PROG:            Files
+        ssls   TYPE ssfappl VALUE '<SSLS>', " PROG:            SSL backward compatibility
+        spki   TYPE ssfappl VALUE '<SPKI>', " SSLC:            System PKI
+        dfault TYPE ssfappl VALUE 'DFAULT', " SSLC,SSLS,WSSE:  SSL Client/Server: Standard
+        anonym TYPE ssfappl VALUE 'ANONYM', " SSLC:            SSL Client: Anonymous
+        sapsup TYPE ssfappl VALUE 'SAPSUP', " SSLC:            SSL Client: SAP Support Portal
+        wsse   TYPE ssfappl VALUE 'WSSE',   " WSSE:            SSL Client: Web Service Security
+        wsscrt TYPE ssfappl VALUE 'WSSCRT', " WSSE:            Other System Encryption Certificates
+        wwkey  TYPE ssfappl VALUE 'WSSKEY', " WSSE:            WS Security Keys
       END OF c_application.
 
     TYPES:
@@ -46,8 +48,8 @@ CLASS zcl_strust2 DEFINITION
         serialno    TYPE string,
         validfrom   TYPE string,
         validto     TYPE string,
-        datefrom    TYPE d,
-        dateto      TYPE d,
+        date_from   TYPE d,
+        date_to     TYPE d,
         certificate TYPE xstring,
       END OF ty_certattr,
       ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH KEY subject issuer serialno validfrom validto.
@@ -72,15 +74,19 @@ CLASS zcl_strust2 DEFINITION
 
     METHODS load
       IMPORTING
-        !create TYPE abap_bool DEFAULT abap_false
-        !id     TYPE ssfid OPTIONAL
-        !org    TYPE string OPTIONAL
+        !create       TYPE abap_bool DEFAULT abap_false
+        !id           TYPE ssfid OPTIONAL
+        !org          TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO zcl_strust2
       RAISING
         zcx_error.
 
     METHODS add
       IMPORTING
-        !certificate TYPE ty_certificate
+        !certificate  TYPE ty_certificate
+      RETURNING
+        VALUE(result) TYPE REF TO zcl_strust2
       RAISING
         zcx_error.
 
@@ -98,7 +104,9 @@ CLASS zcl_strust2 DEFINITION
 
     METHODS remove
       IMPORTING
-        !subject TYPE string
+        !subject      TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO zcl_strust2
       RAISING
         zcx_error.
 
@@ -107,6 +115,7 @@ CLASS zcl_strust2 DEFINITION
         VALUE(result) TYPE ty_certattr_tt
       RAISING
         zcx_error.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -201,14 +210,16 @@ CLASS zcl_strust2 IMPLEMENTATION.
           zcx_error=>raise_t100( ).
         ENDIF.
 
-        cert_new-datefrom = cert_new-validfrom(8).
-        cert_new-dateto   = cert_new-validto(8).
+        cert_new-date_from = cert_new-validfrom(8).
+        cert_new-date_to   = cert_new-validto(8).
         APPEND cert_new TO certs_new.
 
       CATCH cx_abap_x509_certificate.
         _unlock( ).
         zcx_error=>raise_t100( ).
     ENDTRY.
+
+    result = me.
 
   ENDMETHOD.
 
@@ -219,6 +230,8 @@ CLASS zcl_strust2 IMPLEMENTATION.
     me->applic  = application.
     profilepw   = password.
 
+    DATA(profile_cast) = CONV localfile( profile ).
+
     CALL FUNCTION 'SSFPSE_FILENAME'
       EXPORTING
         context       = context
@@ -227,7 +240,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         psename       = psename
         psetext       = psetext
         distrib       = distrib
-        profile       = profile
+        profile       = profile_cast
       EXCEPTIONS
         pse_not_found = 1
         OTHERS        = 2.
@@ -300,8 +313,8 @@ CLASS zcl_strust2 IMPLEMENTATION.
         zcx_error=>raise_t100( ).
       ENDIF.
 
-      certificate-datefrom = certificate-validfrom(8).
-      certificate-dateto   = certificate-validto(8).
+      certificate-date_from = certificate-validfrom(8).
+      certificate-date_to   = certificate-validto(8).
       APPEND certificate TO certs_current.
 
     ENDLOOP.
@@ -353,8 +366,8 @@ CLASS zcl_strust2 IMPLEMENTATION.
       zcx_error=>raise_t100( ).
     ENDIF.
 
-    cert_current-datefrom = cert_current-validfrom(8).
-    cert_current-dateto   = cert_current-validto(8).
+    cert_current-date_from = cert_current-validfrom(8).
+    cert_current-date_to   = cert_current-validto(8).
 
     result = cert_current.
 
@@ -386,6 +399,8 @@ CLASS zcl_strust2 IMPLEMENTATION.
         zcx_error=>raise_t100( ).
       ENDIF.
     ENDIF.
+
+    result = me.
 
   ENDMETHOD.
 
@@ -422,6 +437,8 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
     _unlock( ).
 
+    result = me.
+
   ENDMETHOD.
 
 
@@ -433,7 +450,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
       LOOP AT certs_new ASSIGNING FIELD-SYMBOL(<cert_new>) WHERE subject = <cert>-subject.
         DATA(tabix) = sy-tabix.
 
-        IF <cert_new>-dateto > <cert>-dateto.
+        IF <cert_new>-date_to > <cert>-date_to.
           " Certificate is newer, so remove the old certificate
           CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
             EXPORTING
