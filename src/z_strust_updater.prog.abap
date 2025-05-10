@@ -85,22 +85,18 @@ START-OF-SELECTION.
       WRITE 'expired' COLOR COL_NEGATIVE.
     ENDIF.
 
-    SPLIT <cert>-subject AT ', ' INTO TABLE DATA(parts).
-    LOOP AT parts INTO DATA(part) WHERE table_line CS 'CN='.
-      EXIT.
-    ENDLOOP.
-    IF sy-subrc <> 0.
-      WRITE /5 'Unable to determine CN of certificate subject' COLOR COL_NEGATIVE.
-      ULINE.
-      CONTINUE.
-    ENDIF.
-
     IF days_until_expire > p_days.
       CONTINUE.
     ENDIF.
 
     " Get the domain of the certificate
     DATA(dn) = zcl_distinguished_name=>parse( <cert>-subject ).
+
+    IF NOT line_exists( dn[ key = 'CN' ] ).
+      WRITE /5 'Unable to determine CN of certificate subject' COLOR COL_NEGATIVE.
+      ULINE.
+      CONTINUE.
+    ENDIF.
 
     DATA(domain) = dn[ key = 'CN' ]-name.
 
@@ -160,8 +156,6 @@ START-OF-SELECTION.
 
     " We finally have a certificate that can be used for the update, yay!
     TRY.
-        DATA(pem) = VALUE zcl_strust2=>ty_certificate( ).
-
         " Root and intermediate certificates
         IF p_root = abap_true.
 

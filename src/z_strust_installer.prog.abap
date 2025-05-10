@@ -55,8 +55,6 @@ START-OF-SELECTION.
         context     = p_cont
         application = p_appl
         password    = p_passwd ).
-
-      DATA(certs) = strust->load( )->get_certificate_list( ).
     CATCH zcx_error INTO DATA(error).
       MESSAGE error TYPE 'E'.
       STOP.
@@ -107,8 +105,6 @@ START-OF-SELECTION.
 
   " We finally have a certificate that can be used for the update, yay!
   TRY.
-      DATA(pem) = VALUE zcl_strust2=>ty_certificate( ).
-
       " Root and intermediate certificates
       IF p_root = abap_true.
 
