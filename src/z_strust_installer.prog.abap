@@ -24,8 +24,6 @@ SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-t03.
     p_test   AS CHECKBOX DEFAULT abap_true.
 SELECTION-SCREEN END OF BLOCK b3.
 
-CONSTANTS c_api TYPE string VALUE 'https://tools.abappm.com/api/v1/certificates'.
-
 INITIALIZATION.
 
   DATA(subrc) = cl_abap_pse=>authority_check( iv_activity = '01' )
@@ -64,47 +62,31 @@ START-OF-SELECTION.
   WRITE: /'Domain:', p_domain COLOR COL_POSITIVE.
   SKIP.
 
-  " We can't query wildcard domains so we try with "api" sub-domain
-  " TODO: if this fails, loop over a couple other common sub-domains
-  DATA(query) = replace( val = p_domain sub = '*' with = 'api' ).
-  query = cl_abap_dyn_prg=>escape_xss_url( query ).
-
-  " Get certificate data from tools.abappm.com
-  DATA(agent) = zcl_http_agent=>create( ).
-
-  agent->global_headers( )->set(
-    iv_key = zif_http_agent=>c_header-accept
-    iv_val = zif_http_agent=>c_content_type-json ).
-
-  DATA(response) = agent->request( |{ c_api }?domain={ query }| ).
-
-  IF response->is_ok( ) = abap_false.
-    WRITE: / 'Error getting certificates from API:' COLOR COL_NEGATIVE, response->error( ).
-    STOP.
-  ENDIF.
-
   TRY.
-      DATA(ajson) = zcl_ajson=>parse( response->cdata( ) ).
-    CATCH zcx_ajson_error INTO DATA(ajson_error).
-      WRITE: / 'Error parsing API response:' COLOR COL_NEGATIVE, ajson_error->get_text( ).
-      STOP.
-  ENDTRY.
+      DATA(json) = zcl_strust2_cert_api=>get_certificates( p_domain ).
 
-  IF ajson->get( '/error' ) IS NOT INITIAL.
-    WRITE: / 'Error getting certificates from API:' COLOR COL_NEGATIVE, ajson->get( '/error' ).
-    STOP.
-  ENDIF.
+      TRY.
+          DATA(ajson) = zcl_ajson=>parse( json ).
+        CATCH zcx_ajson_error INTO DATA(ajson_error).
+          WRITE: / 'Error parsing API response:' COLOR COL_NEGATIVE, ajson_error->get_text( ).
+          STOP.
+      ENDTRY.
 
-  " Keep fingers crossed that the response matches what we need for the update
-  DATA(cert_domain) = ajson->get( '/domain' ).
+      IF ajson->get( '/error' ) IS NOT INITIAL.
+        WRITE: / 'Error getting certificates from API:' COLOR COL_NEGATIVE, ajson->get( '/error' ).
+        STOP.
+      ENDIF.
 
-  IF cert_domain <> p_domain AND p_domain NA '*'.
-    WRITE: / 'Certificates domain does not match request:' COLOR COL_TOTAL, cert_domain.
-    STOP.
-  ENDIF.
+      " Keep fingers crossed that the response matches what we need for the update
+      DATA(cert_domain) = ajson->get( '/domain' ).
 
-  " We finally have a certificate that can be used for the update, yay!
-  TRY.
+      IF cert_domain <> p_domain AND p_domain NA '*'.
+        WRITE: / 'Certificates domain does not match request:' COLOR COL_TOTAL, cert_domain.
+        STOP.
+      ENDIF.
+
+      " We finally have a certificate that can be used for the update, yay!
+
       " Root and intermediate certificates
       IF p_root = abap_true.
 
