@@ -14,8 +14,7 @@ SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-t01.
 SELECTION-SCREEN END OF BLOCK b1.
 
 SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-t02.
-  SELECT-OPTIONS:
-    so_subj FOR ('STRING') NO INTERVALS.
+  SELECT-OPTIONS s_subj FOR ('STRING') NO INTERVALS.
 SELECTION-SCREEN END OF BLOCK b2.
 
 SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-t03.
@@ -67,7 +66,7 @@ START-OF-SELECTION.
 
   SORT certs BY date_to date_from.
 
-  LOOP AT certs ASSIGNING FIELD-SYMBOL(<cert>) WHERE subject IN so_subj.
+  LOOP AT certs ASSIGNING FIELD-SYMBOL(<cert>) WHERE subject IN s_subj.
 
     DATA(days_until_expire) = <cert>-date_to - sy-datum.
 
@@ -108,7 +107,7 @@ START-OF-SELECTION.
     IF domain NA '.'.
       " It's probably a root or intermediate certificate
       " Go to their website to
-      WRITE: /5 'Unable to determine domain of certificate' COLOR COL_TOTAL.
+      WRITE /5 'Unable to determine domain of certificate' COLOR COL_TOTAL.
       ULINE.
       CONTINUE.
     ENDIF.
