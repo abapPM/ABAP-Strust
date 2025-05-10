@@ -91,7 +91,10 @@ MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 ## Prerequisites
 
 - SAP Basis 7.50 or higher
-- Packages: `ajson`, `string-map`, `error`, `http`, `distinguished-name`
+- Packages:
+  - [`ajson`](https://github.com/sbcgua/ajson)
+  - [`error`](https://github.com/abapPM/ABAP-Error)
+  - [`distinguished-name`](https://github.com/abapPM/ABAP-Distinguished-Name)
 
 ## Installation
 
