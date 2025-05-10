@@ -10,6 +10,11 @@
       "folder": "/deps2",
       "url": "https://github.com/abapPM/ABAP-Error"
     },
+    {
+      "files": "/src/**/*.*",
+      "folder": "/deps3",
+      "url": "https://github.com/abapPM/ABAP-Distinguished-Name"
+    },
   ],
   "global": {
     "exclude": [],
