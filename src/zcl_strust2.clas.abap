@@ -243,6 +243,8 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
     add( certificate ).
 
+    result = me.
+
   ENDMETHOD.
 
 

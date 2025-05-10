@@ -119,12 +119,7 @@ START-OF-SELECTION.
     " We can't query wildcard domains so we try with "api" sub-domain
     " TODO: if this fails, loop over a couple other common sub-domains
     DATA(query) = replace( val = domain sub = '*' with = 'api' ).
-
-    CALL METHOD cl_abap_dyn_prg=>escape_xss_url
-      EXPORTING
-        val = query
-      RECEIVING
-        out = query.
+    query = cl_abap_dyn_prg=>escape_xss_url( query ).
 
     " Get certificate data from tools.abappm.com
     DATA(agent) = zcl_http_agent=>create( ).
@@ -242,9 +237,9 @@ START-OF-SELECTION.
 
   " Save changes
   TRY.
-      strust->update( remove_expired = p_remove ).
+      strust->update( p_remove ).
 
-      WRITE: / 'Certificates saved' COLOR COL_POSITIVE.
+      WRITE / 'Certificates saved' COLOR COL_POSITIVE.
     CATCH zcx_error INTO error.
       WRITE: / 'Error updating certificate:' COLOR COL_NEGATIVE, error->get_text( ).
   ENDTRY.
