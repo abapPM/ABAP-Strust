@@ -90,6 +90,14 @@ CLASS zcl_strust2 DEFINITION
       RAISING
         zcx_error.
 
+    METHODS add_pem
+      IMPORTING
+        !pem          TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO zcl_strust2
+      RAISING
+        zcx_error.
+
     METHODS get_own_certificate
       RETURNING
         VALUE(result) TYPE ty_certattr
@@ -111,8 +119,10 @@ CLASS zcl_strust2 DEFINITION
         zcx_error.
 
     METHODS update
+      IMPORTING
+        !remove_expired TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(result) TYPE ty_certattr_tt
+        VALUE(result)   TYPE ty_certattr_tt
       RAISING
         zcx_error.
 
@@ -170,6 +180,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
     DATA cert_new TYPE ty_certattr.
 
     CONCATENATE LINES OF certificate INTO DATA(certb64).
+    CONDENSE certb64 NO-GAPS.
 
     " Remove Header and Footer
     TRY.
@@ -186,7 +197,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA(certobj) = NEW cl_abap_x509_certificate( if_certificate = <data> ).
+        DATA(certobj) = NEW cl_abap_x509_certificate( <data> ).
 
         cert_new-certificate = certobj->get_certificate( ).
 
@@ -218,6 +229,19 @@ CLASS zcl_strust2 IMPLEMENTATION.
         _unlock( ).
         zcx_error=>raise_t100( ).
     ENDTRY.
+
+    result = me.
+
+  ENDMETHOD.
+
+
+  METHOD add_pem.
+
+    DATA certificate TYPE ty_certificate.
+
+    SPLIT pem AT |\n| INTO TABLE certificate.
+
+    add( certificate ).
 
     result = me.
 
@@ -445,41 +469,43 @@ CLASS zcl_strust2 IMPLEMENTATION.
   METHOD update.
 
     " Remove expired certificates
-    LOOP AT certs_current ASSIGNING FIELD-SYMBOL(<cert>).
+    IF remove_expired = abap_true.
+      LOOP AT certs_current ASSIGNING FIELD-SYMBOL(<cert>).
 
-      LOOP AT certs_new ASSIGNING FIELD-SYMBOL(<cert_new>) WHERE subject = <cert>-subject.
-        DATA(tabix) = sy-tabix.
+        LOOP AT certs_new ASSIGNING FIELD-SYMBOL(<cert_new>) WHERE subject = <cert>-subject.
+          DATA(tabix) = sy-tabix.
 
-        IF <cert_new>-date_to > <cert>-date_to.
-          " Certificate is newer, so remove the old certificate
-          CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
-            EXPORTING
-              profile               = profile
-              profilepw             = profilepw
-              subject               = <cert>-subject
-              issuer                = <cert>-issuer
-              serialno              = <cert>-serialno
-            EXCEPTIONS
-              ssf_krn_error         = 1
-              ssf_krn_nomemory      = 2
-              ssf_krn_nossflib      = 3
-              ssf_krn_invalid_par   = 4
-              ssf_krn_nocertificate = 5
-              OTHERS                = 6.
-          IF sy-subrc <> 0.
-            _unlock( ).
-            zcx_error=>raise_t100( ).
+          IF <cert_new>-date_to > <cert>-date_to.
+            " Certificate is newer, so remove the old certificate
+            CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
+              EXPORTING
+                profile               = profile
+                profilepw             = profilepw
+                subject               = <cert>-subject
+                issuer                = <cert>-issuer
+                serialno              = <cert>-serialno
+              EXCEPTIONS
+                ssf_krn_error         = 1
+                ssf_krn_nomemory      = 2
+                ssf_krn_nossflib      = 3
+                ssf_krn_invalid_par   = 4
+                ssf_krn_nocertificate = 5
+                OTHERS                = 6.
+            IF sy-subrc <> 0.
+              _unlock( ).
+              zcx_error=>raise_t100( ).
+            ENDIF.
+
+            is_dirty = abap_true.
+          ELSE.
+            " Certificate already exists, no update necessary
+            DELETE certs_new INDEX tabix.
           ENDIF.
 
-          is_dirty = abap_true.
-        ELSE.
-          " Certificate already exists, no update necessary
-          DELETE certs_new INDEX tabix.
-        ENDIF.
+        ENDLOOP.
 
       ENDLOOP.
-
-    ENDLOOP.
+    ENDIF.
 
     " Add new certificates to PSE
     LOOP AT certs_new ASSIGNING <cert_new>.
@@ -621,21 +647,25 @@ CLASS zcl_strust2 IMPLEMENTATION.
       zcx_error=>raise_t100( ).
     ENDIF.
 
-    cred_name = psename.
+    IF profile(3) = 'SSL'.
+      cred_name = psename.
 
-    CALL FUNCTION 'ICM_SSL_PSE_CHANGED'
-      EXPORTING
-        global              = 1
-        cred_name           = cred_name
-      EXCEPTIONS
-        icm_op_failed       = 1
-        icm_get_serv_failed = 2
-        icm_auth_failed     = 3
-        OTHERS              = 4.
-    IF sy-subrc = 0.
-      MESSAGE s086(trust).
+      CALL FUNCTION 'ICM_SSL_PSE_CHANGED'
+        EXPORTING
+          global              = 1
+          cred_name           = cred_name
+        EXCEPTIONS
+          icm_op_failed       = 1
+          icm_get_serv_failed = 2
+          icm_auth_failed     = 3
+          OTHERS              = 4.
+      IF sy-subrc = 0.
+        MESSAGE s086(trust).
+      ELSE.
+        MESSAGE s085(trust).
+      ENDIF.
     ELSE.
-      MESSAGE s085(trust).
+      MESSAGE 'Certificate was saved successfully' TYPE 'S'.
     ENDIF.
 
   ENDMETHOD.

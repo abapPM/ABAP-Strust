@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>Z_STRUST_UPDATER</NAME>
+    <NAME>Z_STRUST_INSTALLER</NAME>
     <SUBC>1</SUBC>
     <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
@@ -13,8 +13,8 @@
     <item>
      <ID>H</ID>
      <KEY>001</KEY>
-     <ENTRY>Subject                                                                                                                          Valid From     Valid to       Status</ENTRY>
-     <LENGTH>165</LENGTH>
+     <ENTRY>Subject                                                                                                                          Valid From     Valid to</ENTRY>
+     <LENGTH>152</LENGTH>
     </item>
     <item>
      <ID>I</ID>
@@ -36,8 +36,8 @@
     </item>
     <item>
      <ID>R</ID>
-     <ENTRY>Trust Management: Certificate Updater</ENTRY>
-     <LENGTH>37</LENGTH>
+     <ENTRY>Trust Management: Certificate Installer</ENTRY>
+     <LENGTH>39</LENGTH>
     </item>
     <item>
      <ID>S</ID>
@@ -53,9 +53,9 @@
     </item>
     <item>
      <ID>S</ID>
-     <KEY>P_DAYS</KEY>
-     <ENTRY>Minimum days before reneval</ENTRY>
-     <LENGTH>35</LENGTH>
+     <KEY>P_DOMAIN</KEY>
+     <ENTRY>Domain</ENTRY>
+     <LENGTH>14</LENGTH>
     </item>
     <item>
      <ID>S</ID>
@@ -65,14 +65,8 @@
     </item>
     <item>
      <ID>S</ID>
-     <KEY>P_REMOVE</KEY>
-     <ENTRY>Remove expired certificates</ENTRY>
-     <LENGTH>35</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
      <KEY>P_ROOT</KEY>
-     <ENTRY>Update root/intermediate certs</ENTRY>
+     <ENTRY>Add root/intermediate certs</ENTRY>
      <LENGTH>38</LENGTH>
     </item>
     <item>
@@ -80,12 +74,6 @@
      <KEY>P_TEST</KEY>
      <ENTRY>Test run</ENTRY>
      <LENGTH>16</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
-     <KEY>SO_SUBJ</KEY>
-     <ENTRY>Subject (CN)</ENTRY>
-     <LENGTH>20</LENGTH>
     </item>
    </TPOOL>
   </asx:values>
