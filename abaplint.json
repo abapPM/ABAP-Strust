@@ -24,6 +24,11 @@
       "files": "/src/**/*.*",
       "folder": "/deps5",
       "url": "https://github.com/sbcgua/ajson"
+    },
+    {
+      "files": "/src/**/*.*",
+      "folder": "/deps6",
+      "url": "https://github.com/sbcgua/abap-string-map"
     }
   ],
   "global": {
