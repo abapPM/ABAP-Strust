@@ -12,6 +12,28 @@ NO WARRANTIES, [MIT License](LICENSE)
 
 ## Usage
 
+### Install Certificates
+
+Run program `Z_STRUST_INSTALLER` and enter the domain for which you want to install the required certificates to ABAP Trust Management:
+
+![Installer Selection-Screen](/img/installer-1.png)
+
+![Installer Result](/img/installer-2.png)
+
+### Update Certificates
+
+Run program `Z_STRUST_UPDATER` and optionally enter domains for which you want to update the certificates to ABAP Trust Management:
+
+![Updater Selection-Screen](/img/updater-1.png)
+
+![Updater Result](/img/updater-2.png)
+
+![Updater Result](/img/updater-3.png)
+
+![Updater Result with Root Intermediate Certificates](/img/updater-4.png)
+
+## API
+
 Example of creating, updating, or removing a certificate using class `zcl_strust2`.
 
 ```abap
@@ -68,7 +90,8 @@ MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 
 ## Prerequisites
 
-SAP Basis 7.02 or higher
+- SAP Basis 7.50 or higher
+- Packages: `ajson`, `string-map`, `error`, `http`, `distinguished-name`
 
 ## Installation
 
