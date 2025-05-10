@@ -12,11 +12,6 @@
     },
     {
       "files": "/src/**/*.*",
-      "folder": "/deps3",
-      "url": "https://github.com/abapPM/ABAP-HTTP"
-    },
-    {
-      "files": "/src/**/*.*",
       "folder": "/deps4",
       "url": "https://github.com/abapPM/ABAP-Distinguished-Name"
     },
@@ -24,11 +19,6 @@
       "files": "/src/**/*.*",
       "folder": "/deps5",
       "url": "https://github.com/sbcgua/ajson"
-    },
-    {
-      "files": "/src/**/*.*",
-      "folder": "/deps6",
-      "url": "https://github.com/sbcgua/abap-string-map"
     }
   ],
   "global": {
