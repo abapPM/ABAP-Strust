@@ -91,7 +91,7 @@ MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 ## Prerequisites
 
 - SAP Basis 7.50 or higher
-- Packages: `ajson`, `http`, `distinguished-name`
+- Packages: `ajson`, `string-map`, `error`, `http`, `distinguished-name`
 
 ## Installation
 
