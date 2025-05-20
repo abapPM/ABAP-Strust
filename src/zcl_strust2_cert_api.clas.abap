@@ -52,8 +52,7 @@ CLASS zcl_strust2_cert_api DEFINITION
       IMPORTING
         headers TYPE tihttpnvp
         cookies TYPE tihttpcki
-        debug   TYPE abap_bool.
-
+        debug   TYPE abap_bool ##CALLED.
 ENDCLASS.
 
 
