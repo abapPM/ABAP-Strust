@@ -189,11 +189,11 @@ CLASS zcl_strust2 IMPLEMENTATION.
           ASSIGN base64 TO FIELD-SYMBOL(<data>).
           ASSERT sy-subrc = 0.
         ELSE.
-          zcx_error=>raise( 'Inconsistent certificate format'(010) ).
+          RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Inconsistent certificate format'(010).
         ENDIF.
       CATCH cx_sy_regex_too_complex.
         " e.g. multiple PEM frames in file
-        zcx_error=>raise( 'Inconsistent certificate format'(010) ).
+        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Inconsistent certificate format'(010).
     ENDTRY.
 
     TRY.
@@ -218,7 +218,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
             OTHERS              = 5.
         IF sy-subrc <> 0.
           _unlock( ).
-          zcx_error=>raise_t100( ).
+          RAISE EXCEPTION TYPE zcx_error_t100.
         ENDIF.
 
         cert_new-date_from = cert_new-validfrom(8).
@@ -227,7 +227,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
       CATCH cx_abap_x509_certificate.
         _unlock( ).
-        zcx_error=>raise_t100( ).
+        RAISE EXCEPTION TYPE zcx_error_t100.
     ENDTRY.
 
     result = me.
@@ -269,7 +269,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         pse_not_found = 1
         OTHERS        = 2.
     IF sy-subrc <> 0.
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
   ENDMETHOD.
@@ -310,7 +310,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS                = 6.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
     LOOP AT certlist ASSIGNING <certlist>.
@@ -334,7 +334,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS              = 5.
       IF sy-subrc <> 0.
         _unlock( ).
-        zcx_error=>raise_t100( ).
+        RAISE EXCEPTION TYPE zcx_error_t100.
       ENDIF.
 
       certificate-date_from = certificate-validfrom(8).
@@ -367,7 +367,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS                = 6.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
     CALL FUNCTION 'SSFC_PARSE_CERTIFICATE'
@@ -387,7 +387,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS              = 5.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
     cert_current-date_from = cert_current-validfrom(8).
@@ -420,7 +420,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           id  = id
           org = org ).
       ELSE.
-        zcx_error=>raise_t100( ).
+        RAISE EXCEPTION TYPE zcx_error_t100.
       ENDIF.
     ENDIF.
 
@@ -450,7 +450,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS                = 6.
       IF sy-subrc <> 0.
         _unlock( ).
-        zcx_error=>raise_t100( ).
+        RAISE EXCEPTION TYPE zcx_error_t100.
       ENDIF.
 
       is_dirty = abap_true.
@@ -493,7 +493,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
                 OTHERS                = 6.
             IF sy-subrc <> 0.
               _unlock( ).
-              zcx_error=>raise_t100( ).
+              RAISE EXCEPTION TYPE zcx_error_t100.
             ENDIF.
 
             is_dirty = abap_true.
@@ -524,7 +524,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS              = 6.
       IF sy-subrc <> 0.
         _unlock( ).
-        zcx_error=>raise_t100( ).
+        RAISE EXCEPTION TYPE zcx_error_t100.
       ENDIF.
 
       is_dirty = abap_true.
@@ -582,7 +582,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         ssf_unknown_error = 1
         OTHERS            = 2.
     IF sy-subrc <> 0.
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
     tempfile = psepath.
@@ -603,7 +603,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         internal_error  = 3
         OTHERS          = 4.
     IF sy-subrc <> 0.
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
   ENDMETHOD.
@@ -616,7 +616,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
     ENDIF.
 
     IF profile IS INITIAL.
-      zcx_error=>raise( 'Missing profile. Call "load" first' ).
+      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Missing profile. Call "load" first'(011).
     ENDIF.
 
   ENDMETHOD.
@@ -644,7 +644,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS            = 4.
     IF sy-subrc <> 0.
       _unlock( ).
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
     IF profile(3) = 'SSL'.
@@ -677,9 +677,13 @@ CLASS zcl_strust2 IMPLEMENTATION.
     TRY.
         DELETE DATASET tempfile.
       CATCH cx_sy_file_open.
-        zcx_error=>raise( 'Error deleting file'(020) && | { tempfile }| ).
+        RAISE EXCEPTION TYPE zcx_error_text
+          EXPORTING
+            text = 'Error deleting file'(020) && | { tempfile }|.
       CATCH cx_sy_file_authority.
-        zcx_error=>raise( 'Not authorized to delete file'(030) && | { tempfile }| ).
+        RAISE EXCEPTION TYPE zcx_error_text
+          EXPORTING
+            text = 'Not authorized to delete file'(030) && | { tempfile }|.
     ENDTRY.
 
     " Unlock PSE
@@ -692,7 +696,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         internal_error  = 3
         OTHERS          = 4.
     IF sy-subrc <> 0.
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
   ENDMETHOD.

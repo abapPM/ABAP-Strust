@@ -83,7 +83,9 @@ CLASS zcl_strust2_cert_api IMPLEMENTATION.
     ENDIF.
 
     IF json_response IS INITIAL OR json_response(1) <> '{'.
-      zcx_error=>raise( 'Invalid response (expected JSON):' && json_response ).
+      RAISE EXCEPTION TYPE zcx_error_text
+        EXPORTING
+          text = |Invalid response (expected JSON): { json_response }|.
     ENDIF.
 
     result = json_response.
@@ -102,7 +104,7 @@ CLASS zcl_strust2_cert_api IMPLEMENTATION.
       EXCEPTIONS
         OTHERS = 99 ).
     IF sy-subrc <> 0.
-      zcx_error=>raise_t100( ).
+      RAISE EXCEPTION TYPE zcx_error_t100.
     ENDIF.
 
     result->request->set_header_field(
@@ -166,7 +168,7 @@ CLASS zcl_strust2_cert_api IMPLEMENTATION.
         IMPORTING
           code    = status_code
           message = message ).
-      zcx_error=>raise( |{ message } (HTTP/{ status_code })| ).
+      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = |{ message } (HTTP/{ status_code })|.
     ENDIF.
 
     result = http_client->response.

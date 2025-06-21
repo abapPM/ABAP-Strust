@@ -20,6 +20,12 @@
     </item>
     <item>
      <ID>I</ID>
+     <KEY>011</KEY>
+     <ENTRY>Missing profile. Call &quot;load&quot; first</ENTRY>
+     <LENGTH>80</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>020</KEY>
      <ENTRY>Error deleting file</ENTRY>
      <LENGTH>80</LENGTH>
