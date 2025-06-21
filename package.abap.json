@@ -34,7 +34,7 @@
     "url": "https://github.com/sponsors/abapPM"
   },
   "dependencies": {
-    "ajson": "^1.11.0",
+    "ajson": "^1.1.12",
     "distinguished-name": "^1.0.0",
     "error": "^1.0.0"
   },
