@@ -16,21 +16,21 @@ NO WARRANTIES, [MIT License](LICENSE)
 
 Run program `Z_STRUST_INSTALLER` and enter the domain for which you want to install the required certificates to ABAP Trust Management:
 
-![Installer Selection-Screen](/img/installer-1.png)
+![Installer Selection-Screen](https://github.com/abapPM/ABAP-Strust/raw/main/img/installer-1.png)
 
-![Installer Result](/img/installer-2.png)
+![Installer Result](https://github.com/abapPM/ABAP-Strust/raw/main/img/installer-2.png)
 
 ### Update Certificates
 
 Run program `Z_STRUST_UPDATER` and optionally enter domains for which you want to update the certificates to ABAP Trust Management:
 
-![Updater Selection-Screen](/img/updater-1.png)
+![Updater Selection-Screen](https://github.com/abapPM/ABAP-Strust/raw/main/img/updater-1.png)
 
-![Updater Result](/img/updater-2.png)
+![Updater Result](https://github.com/abapPM/ABAP-Strust/raw/main/img/updater-2.png)
 
-![Updater Result](/img/updater-3.png)
+![Updater Result](https://github.com/abapPM/ABAP-Strust/raw/main/img/updater-3.png)
 
-![Updater Result with Root Intermediate Certificates](/img/updater-4.png)
+![Updater Result with Root Intermediate Certificates](https://github.com/abapPM/ABAP-Strust/raw/main/img/updater-4.png)
 
 ## API
 
