@@ -1,16 +1,17 @@
 {
-  "name": "xxx",
+  "name": "strust",
   "version": "1.0.0",
-  "description": "XXX",
+  "description": "Add, update, or remove certificates from ABAP Trust Management",
   "type": "module",
   "keywords": [
     "abap",
     "apm",
-    "module"
+    "module",
+    "strust"
   ],
   "homepage": "https://abappm.com",
   "bugs": {
-    "url": "https://github.com/abapPM/ABAP-XXX"
+    "url": "https://github.com/abapPM/ABAP-Strust"
   },
   "license": "MIT",
   "author": {
@@ -26,13 +27,15 @@
     }
   ],
   "repository": {
-    "url": "https://github.com/abapPM/ABAP-XXX"
+    "url": "https://github.com/abapPM/ABAP-Strust"
   },
   "funding": {
     "type": "github",
     "url": "https://github.com/sponsors/abapPM"
   },
   "dependencies": {
+    "ajson": "^1.11.0",
+    "distinguished-name": "^1.0.0",
     "error": "^1.0.0"
   },
   "engines": {
