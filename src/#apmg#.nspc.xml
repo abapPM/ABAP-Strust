@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_NSPC" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <NSPC>
+    <NAMESPACE>/APMG/</NAMESPACE>
+    <REPLICENSE>41813564412598342476</REPLICENSE>
+   </NSPC>
+   <NSPC_TEXT>
+    <SPRAS>E</SPRAS>
+    <DESCRIPTN>apm</DESCRIPTN>
+    <OWNER>apm.to Inc.</OWNER>
+   </NSPC_TEXT>
+  </asx:values>
+ </asx:abap>
+</abapGit>

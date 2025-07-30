@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>Z_STRUST_UPDATER</NAME>
+    <NAME>/APMG/STRUST_UPDATER</NAME>
     <SUBC>1</SUBC>
     <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
@@ -11,28 +11,22 @@
    </PROGDIR>
    <TPOOL>
     <item>
-     <ID>H</ID>
-     <KEY>001</KEY>
-     <ENTRY>Subject                                                                                                                          Valid From     Valid to       Status</ENTRY>
-     <LENGTH>165</LENGTH>
-    </item>
-    <item>
      <ID>I</ID>
      <KEY>T01</KEY>
      <ENTRY>Category</ENTRY>
-     <LENGTH>50</LENGTH>
+     <LENGTH>18</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>T02</KEY>
      <ENTRY>Certificate</ENTRY>
-     <LENGTH>50</LENGTH>
+     <LENGTH>21</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>T03</KEY>
      <ENTRY>Options</ENTRY>
-     <LENGTH>50</LENGTH>
+     <LENGTH>17</LENGTH>
     </item>
     <item>
      <ID>R</ID>
@@ -85,7 +79,7 @@
      <ID>S</ID>
      <KEY>S_SUBJ</KEY>
      <ENTRY>Subject (CN)</ENTRY>
-     <LENGTH>32</LENGTH>
+     <LENGTH>20</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

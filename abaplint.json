@@ -43,7 +43,13 @@
     "align_type_expressions": true,
     "allowed_object_naming": true,
     "allowed_object_types": {
-      "allowed": ["CLAS", "DEVC", "INTF", "PROG"]
+      "allowed": [
+        "CLAS",
+        "DEVC",
+        "INTF",
+        "NSPC",
+        "PROG"
+      ]
     },
     "ambiguous_statement": true,
     "avoid_use": true,
@@ -185,7 +191,7 @@
       "aqqu": "^Z",
       "aqsg": "^ZM",
       "auth": "^Z",
-      "clas": "^ZC(L|X)\\_STRUST",
+      "clas": "^/APMG/C(L|X)_STRUST",
       "cmod": "^Z",
       "doma": "^Z",
       "dtel": "^Z",
@@ -197,11 +203,11 @@
       "idoc": "^Z",
       "ignoreNames": [],
       "ignorePatterns": [],
-      "intf": "^ZIF\\_STRUST",
+      "intf": "^/APMG/IF_STRUST",
       "msag": "^Z",
       "patternKind": "required",
       "pinf": "^Z",
-      "prog": "^Z_STRUST",
+      "prog": "^/APMG/STRUST",
       "sfpf": "^Z",
       "sfpi": "^Z",
       "shlp": "^Z",
@@ -284,7 +290,7 @@
     "xml_consistency": true
   },
   "syntax": {
-    "errorNamespace": "^(Z|Y|LCL_|TY_|LIF_)",
+    "errorNamespace": "^(/APMG/|LCL_|TY_|LIF_)",
     "globalConstants": [],
     "globalMacros": [],
     "version": "v750"

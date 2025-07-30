@@ -1,4 +1,4 @@
-REPORT z_strust_installer LINE-SIZE 255.
+REPORT /apmg/strust_installer LINE-SIZE 255.
 
 ************************************************************************
 * Trust Management: Certificate Installer
@@ -49,11 +49,11 @@ START-OF-SELECTION.
   ENDIF.
 
   TRY.
-      DATA(strust) = zcl_strust2=>create(
+      DATA(strust) = /apmg/cl_strust=>create(
         context     = p_cont
         application = p_appl
         password    = p_passwd ).
-    CATCH zcx_error INTO DATA(error).
+    CATCH /apmg/cx_error INTO DATA(error).
       MESSAGE error TYPE 'E'.
       STOP.
   ENDTRY.
@@ -63,7 +63,7 @@ START-OF-SELECTION.
   SKIP.
 
   TRY.
-      DATA(json) = zcl_strust2_cert_api=>get_certificates( p_domain ).
+      DATA(json) = /apmg/cl_strust_cert_api=>get_certificates( p_domain ).
 
       TRY.
           DATA(ajson) = zcl_ajson=>parse( json ).
@@ -152,6 +152,6 @@ START-OF-SELECTION.
 
       WRITE / 'Certificates saved' COLOR COL_POSITIVE.
 
-    CATCH zcx_error INTO error.
+    CATCH /apmg/cx_error INTO error.
       WRITE: / 'Error updating certificate:' COLOR COL_NEGATIVE, error->get_text( ).
   ENDTRY.

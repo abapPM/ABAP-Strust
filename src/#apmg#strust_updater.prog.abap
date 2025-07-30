@@ -1,4 +1,4 @@
-REPORT z_strust_updater LINE-SIZE 255.
+REPORT /apmg/strust_updater LINE-SIZE 255.
 
 ************************************************************************
 * Trust Management: Certificate Updater
@@ -51,13 +51,13 @@ START-OF-SELECTION.
   ENDIF.
 
   TRY.
-      DATA(strust) = zcl_strust2=>create(
+      DATA(strust) = /apmg/cl_strust=>create(
         context     = p_cont
         application = p_appl
         password    = p_passwd ).
 
       DATA(certs) = strust->load( )->get_certificate_list( ).
-    CATCH zcx_error INTO DATA(error).
+    CATCH /apmg/cx_error INTO DATA(error).
       MESSAGE error TYPE 'E'.
       STOP.
   ENDTRY.
@@ -88,7 +88,7 @@ START-OF-SELECTION.
     ENDIF.
 
     " Get the domain of the certificate
-    DATA(dn) = zcl_distinguished_name=>parse( <cert>-subject ).
+    DATA(dn) = /apmg/cl_distinguished_name=>parse( <cert>-subject ).
 
     IF NOT line_exists( dn[ key = 'CN' ] ).
       WRITE /5 'Unable to determine CN of certificate subject' COLOR COL_NEGATIVE.
@@ -110,7 +110,7 @@ START-OF-SELECTION.
     SKIP.
 
     TRY.
-        DATA(json) = zcl_strust2_cert_api=>get_certificates( domain ).
+        DATA(json) = /apmg/cl_strust_cert_api=>get_certificates( domain ).
 
         TRY.
             DATA(ajson) = zcl_ajson=>parse( json ).
@@ -189,7 +189,7 @@ START-OF-SELECTION.
           AT 145 peer_date_to(10),
           AT 158 ''.
 
-      CATCH zcx_error INTO error.
+      CATCH /apmg/cx_error INTO error.
         WRITE: /10 'Error updating certificate:' COLOR COL_NEGATIVE, error->get_text( ).
     ENDTRY.
 
@@ -213,6 +213,6 @@ START-OF-SELECTION.
       strust->update( p_remove ).
 
       WRITE / 'Certificates saved' COLOR COL_POSITIVE.
-    CATCH zcx_error INTO error.
+    CATCH /apmg/cx_error INTO error.
       WRITE: / 'Error updating certificate:' COLOR COL_NEGATIVE, error->get_text( ).
   ENDTRY.
