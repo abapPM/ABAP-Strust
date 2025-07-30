@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/endpoint?url=https://shield.abappm.com/github/abapPM/ABAP-Strust/src/zcl_strust2.clas.abap/c_version&label=Version&color=blue)
+![Version](https://img.shields.io/endpoint?url=https://shield.abappm.com/github/abapPM/ABAP-Strust/src/%2523apmg%2523cl_strust2.clas.abap/c_version&label=Version&color=blue)
 
 [![License](https://img.shields.io/github/license/abapPM/ABAP-Strust?label=License&color=success)](LICENSE)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=success)](https://github.com/abapPM/.github/blob/main/CODE_OF_CONDUCT.md)
@@ -6,7 +6,7 @@
 
 # Trust Management
 
-Easy to use class for adding, updating, or removing certificates from ABAP Trust Management (transaction STRUST)
+Easy-to-use class for adding, updating, or removing certificates from ABAP Trust Management (transaction STRUST)
 
 NO WARRANTIES, [MIT License](LICENSE)
 
@@ -14,7 +14,7 @@ NO WARRANTIES, [MIT License](LICENSE)
 
 ### Install Certificates
 
-Run program `Z_STRUST_INSTALLER` and enter the domain for which you want to install the required certificates to ABAP Trust Management:
+Run program `/APMG/STRUST_INSTALLER` and enter the domain for which you want to install the required certificates to ABAP Trust Management:
 
 ![Installer Selection-Screen](https://github.com/abapPM/ABAP-Strust/raw/main/img/installer-1.png)
 
@@ -22,7 +22,7 @@ Run program `Z_STRUST_INSTALLER` and enter the domain for which you want to inst
 
 ### Update Certificates
 
-Run program `Z_STRUST_UPDATER` and optionally enter domains for which you want to update the certificates to ABAP Trust Management:
+Run program `/APMG/STRUST_UPDATER` and optionally enter domains for which you want to update the certificates to ABAP Trust Management:
 
 ![Updater Selection-Screen](https://github.com/abapPM/ABAP-Strust/raw/main/img/updater-1.png)
 
@@ -34,7 +34,7 @@ Run program `Z_STRUST_UPDATER` and optionally enter domains for which you want t
 
 ## API
 
-Example of creating, updating, or removing a certificate using class `zcl_strust2`.
+Example of creating, updating, or removing a certificate using class `/apmg/cl_strust`.
 
 ```abap
 CONSTANTS:
@@ -44,38 +44,25 @@ CONSTANTS:
   c_org     TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT,
   c_subject TYPE string VALUE 'CN=*.marcbernardtools.com' ##NO_TEXT.
 
-DATA:
-  lo_strust TYPE REF TO zcl_strust2,
-  lx_error  TYPE REF TO zcx_strust2.
+DATA(strust) = /apmg/cl_strust=>create(
+  context     = c_sslc
+  application = c_anonym ).
 
-TRY.
-    CREATE OBJECT lo_strust
-      EXPORTING
-        iv_context = c_sslc
-        iv_applic  = c_anonym.
+strust->load(
+  create = abap_true
+  id     = c_id
+  org    = c_org ).
 
-    lo_strust->load(
-      iv_create = abap_true
-      iv_id     = c_id
-      iv_org    = c_org ).
+strust->get_own_certificate( ).
 
-    lo_strust->get_own_certificate( ).
+strust->get_certificate_list( ).
 
-    lo_strust->get_certificate_list( ).
-
-    IF iv_drop = abap_true.
-      lo_strust->remove( c_subject ).
-    ELSE.
-      " Root and intermediate certificates
-      " lo_strust->add( _get_certificate_ca( ) )
-      " lo_strust->add( _get_certificate_ica( ) )
-      lo_strust->add( _get_certificate_mbt( ) ).
-      lo_strust->update( ).
-    ENDIF.
-
-  CATCH zcx_strust2 INTO lx_error.
-    MESSAGE lx_error TYPE 'I' DISPLAY LIKE 'E'.
-ENDTRY.
+IF drop = abap_true.
+  strust->remove( c_subject ).
+ELSE.
+  strust->add_pem( '<your_certificate>' ).
+  strust->update( ).
+ENDIF.
 ```
 
 The certificate for the `add` method needs to be provided as a table with the following format:
@@ -87,6 +74,8 @@ MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 ...
 -----END CERTIFICATE-----
 ```
+
+Alternatively, use the method `add_pem` to pass the certificate as a string.
 
 ## Prerequisites
 
@@ -110,7 +99,7 @@ All contributions are welcome! Read our [Contribution Guidelines](https://github
 
 You can install the developer version of ABAP STRUST using [abapGit](https://github.com/abapGit/abapGit) by creating a new online repository for `https://github.com/abapPM/ABAP-Strust`.
 
-Recommended SAP package: `$STRUST`
+Recommended SAP package: `/APMG/STRUST`
 
 ## About
 
@@ -118,5 +107,4 @@ Made with ❤ in Canada
 
 Copyright 2025 apm.to Inc. <https://apm.to>
 
-Follow [@marcf.be](https://bsky.app/profile/marcf.be) on Blueksy and [@marcfbe](https://linkedin.com/in/marcfbe) or LinkedIn
-
+Follow [@marcf.be](https://bsky.app/profile/marcf.be) on Bluesky and [@marcfbe](https://linkedin.com/in/marcfbe) or LinkedIn
