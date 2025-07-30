@@ -1,4 +1,4 @@
-CLASS /apmg/cl_strust2_cert_api DEFINITION
+CLASS /apmg/cl_strust_cert_api DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -53,11 +53,12 @@ CLASS /apmg/cl_strust2_cert_api DEFINITION
         headers TYPE tihttpnvp
         cookies TYPE tihttpcki
         debug   TYPE abap_bool ##CALLED.
+
 ENDCLASS.
 
 
 
-CLASS /apmg/cl_strust2_cert_api IMPLEMENTATION.
+CLASS /apmg/cl_strust_cert_api IMPLEMENTATION.
 
 
   METHOD get_certificates.

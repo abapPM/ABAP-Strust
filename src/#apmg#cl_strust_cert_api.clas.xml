@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/APMG/CL_STRUST2_CERT_API</CLSNAME>
+    <CLSNAME>/APMG/CL_STRUST_CERT_API</CLSNAME>
     <LANGU>E</LANGU>
     <DESCRIPT>Trust Management: Certificate API</DESCRIPT>
     <STATE>1</STATE>

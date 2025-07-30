@@ -51,7 +51,7 @@ START-OF-SELECTION.
   ENDIF.
 
   TRY.
-      DATA(strust) = /apmg/cl_strust2=>create(
+      DATA(strust) = /apmg/cl_strust=>create(
         context     = p_cont
         application = p_appl
         password    = p_passwd ).
@@ -110,7 +110,7 @@ START-OF-SELECTION.
     SKIP.
 
     TRY.
-        DATA(json) = /apmg/cl_strust2_cert_api=>get_certificates( domain ).
+        DATA(json) = /apmg/cl_strust_cert_api=>get_certificates( domain ).
 
         TRY.
             DATA(ajson) = zcl_ajson=>parse( json ).

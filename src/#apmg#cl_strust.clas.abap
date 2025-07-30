@@ -1,4 +1,4 @@
-CLASS /apmg/cl_strust2 DEFINITION
+CLASS /apmg/cl_strust DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -60,7 +60,7 @@ CLASS /apmg/cl_strust2 DEFINITION
         !application  TYPE ssfappl
         !password     TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO /apmg/cl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust
       RAISING
         /apmg/cx_error.
 
@@ -78,7 +78,7 @@ CLASS /apmg/cl_strust2 DEFINITION
         !id           TYPE ssfid OPTIONAL
         !org          TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO /apmg/cl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust
       RAISING
         /apmg/cx_error.
 
@@ -86,7 +86,7 @@ CLASS /apmg/cl_strust2 DEFINITION
       IMPORTING
         !certificate  TYPE ty_certificate
       RETURNING
-        VALUE(result) TYPE REF TO /apmg/cl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust
       RAISING
         /apmg/cx_error.
 
@@ -94,7 +94,7 @@ CLASS /apmg/cl_strust2 DEFINITION
       IMPORTING
         !pem          TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO /apmg/cl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust
       RAISING
         /apmg/cx_error.
 
@@ -114,7 +114,7 @@ CLASS /apmg/cl_strust2 DEFINITION
       IMPORTING
         !subject      TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO /apmg/cl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust
       RAISING
         /apmg/cx_error.
 
@@ -172,7 +172,7 @@ ENDCLASS.
 
 
 
-CLASS /apmg/cl_strust2 IMPLEMENTATION.
+CLASS /apmg/cl_strust IMPLEMENTATION.
 
 
   METHOD add.
