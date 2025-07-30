@@ -1,4 +1,4 @@
-CLASS zcl_strust2_cert_api DEFINITION
+CLASS /apmg/cl_strust2_cert_api DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -22,7 +22,7 @@ CLASS zcl_strust2_cert_api DEFINITION
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -38,7 +38,7 @@ CLASS zcl_strust2_cert_api DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO if_http_client
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     CLASS-METHODS _response
       IMPORTING
@@ -46,7 +46,7 @@ CLASS zcl_strust2_cert_api DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO if_http_response
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     CLASS-METHODS _debug
       IMPORTING
@@ -57,7 +57,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_strust2_cert_api IMPLEMENTATION.
+CLASS /apmg/cl_strust2_cert_api IMPLEMENTATION.
 
 
   METHOD get_certificates.
@@ -83,7 +83,7 @@ CLASS zcl_strust2_cert_api IMPLEMENTATION.
     ENDIF.
 
     IF json_response IS INITIAL OR json_response(1) <> '{'.
-      RAISE EXCEPTION TYPE zcx_error_text
+      RAISE EXCEPTION TYPE /apmg/cx_error_text
         EXPORTING
           text = |Invalid response (expected JSON): { json_response }|.
     ENDIF.
@@ -104,7 +104,7 @@ CLASS zcl_strust2_cert_api IMPLEMENTATION.
       EXCEPTIONS
         OTHERS = 99 ).
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
     result->request->set_header_field(
@@ -168,7 +168,7 @@ CLASS zcl_strust2_cert_api IMPLEMENTATION.
         IMPORTING
           code    = status_code
           message = message ).
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = |{ message } (HTTP/{ status_code })|.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = |{ message } (HTTP/{ status_code })|.
     ENDIF.
 
     result = http_client->response.

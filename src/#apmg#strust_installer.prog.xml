@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>Z_STRUST_INSTALLER</NAME>
+    <NAME>/APMG/STRUST_INSTALLER</NAME>
     <SUBC>1</SUBC>
     <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
@@ -11,28 +11,22 @@
    </PROGDIR>
    <TPOOL>
     <item>
-     <ID>H</ID>
-     <KEY>001</KEY>
-     <ENTRY>Subject                                                                                                                          Valid From     Valid to</ENTRY>
-     <LENGTH>152</LENGTH>
-    </item>
-    <item>
      <ID>I</ID>
      <KEY>T01</KEY>
      <ENTRY>Category</ENTRY>
-     <LENGTH>50</LENGTH>
+     <LENGTH>18</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>T02</KEY>
      <ENTRY>Certificate</ENTRY>
-     <LENGTH>50</LENGTH>
+     <LENGTH>21</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>T03</KEY>
      <ENTRY>Options</ENTRY>
-     <LENGTH>50</LENGTH>
+     <LENGTH>17</LENGTH>
     </item>
     <item>
      <ID>R</ID>
@@ -67,7 +61,7 @@
      <ID>S</ID>
      <KEY>P_ROOT</KEY>
      <ENTRY>Add root/intermediate certs</ENTRY>
-     <LENGTH>38</LENGTH>
+     <LENGTH>35</LENGTH>
     </item>
     <item>
      <ID>S</ID>

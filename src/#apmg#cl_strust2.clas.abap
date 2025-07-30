@@ -1,4 +1,4 @@
-CLASS zcl_strust2 DEFINITION
+CLASS /apmg/cl_strust2 DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -60,9 +60,9 @@ CLASS zcl_strust2 DEFINITION
         !application  TYPE ssfappl
         !password     TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO zcl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust2
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS constructor
       IMPORTING
@@ -70,7 +70,7 @@ CLASS zcl_strust2 DEFINITION
         !application TYPE ssfappl
         !password    TYPE string OPTIONAL
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS load
       IMPORTING
@@ -78,45 +78,45 @@ CLASS zcl_strust2 DEFINITION
         !id           TYPE ssfid OPTIONAL
         !org          TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO zcl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust2
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS add
       IMPORTING
         !certificate  TYPE ty_certificate
       RETURNING
-        VALUE(result) TYPE REF TO zcl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust2
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS add_pem
       IMPORTING
         !pem          TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO zcl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust2
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS get_own_certificate
       RETURNING
         VALUE(result) TYPE ty_certattr
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS get_certificate_list
       RETURNING
         VALUE(result) TYPE ty_certattr_tt
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS remove
       IMPORTING
         !subject      TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO zcl_strust2
+        VALUE(result) TYPE REF TO /apmg/cl_strust2
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS update
       IMPORTING
@@ -124,7 +124,7 @@ CLASS zcl_strust2 DEFINITION
       RETURNING
         VALUE(result)   TYPE ty_certattr_tt
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -150,29 +150,29 @@ CLASS zcl_strust2 DEFINITION
         !id  TYPE ssfid OPTIONAL
         !org TYPE string OPTIONAL
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS _lock
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS _profile
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS _unlock
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS _save
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
 ENDCLASS.
 
 
 
-CLASS zcl_strust2 IMPLEMENTATION.
+CLASS /apmg/cl_strust2 IMPLEMENTATION.
 
 
   METHOD add.
@@ -189,11 +189,11 @@ CLASS zcl_strust2 IMPLEMENTATION.
           ASSIGN base64 TO FIELD-SYMBOL(<data>).
           ASSERT sy-subrc = 0.
         ELSE.
-          RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Inconsistent certificate format'(010).
+          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Inconsistent certificate format'(010).
         ENDIF.
       CATCH cx_sy_regex_too_complex.
         " e.g. multiple PEM frames in file
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Inconsistent certificate format'(010).
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Inconsistent certificate format'(010).
     ENDTRY.
 
     TRY.
@@ -218,7 +218,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
             OTHERS              = 5.
         IF sy-subrc <> 0.
           _unlock( ).
-          RAISE EXCEPTION TYPE zcx_error_t100.
+          RAISE EXCEPTION TYPE /apmg/cx_error_t100.
         ENDIF.
 
         cert_new-date_from = cert_new-validfrom(8).
@@ -227,7 +227,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
 
       CATCH cx_abap_x509_certificate.
         _unlock( ).
-        RAISE EXCEPTION TYPE zcx_error_t100.
+        RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDTRY.
 
     result = me.
@@ -269,7 +269,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         pse_not_found = 1
         OTHERS        = 2.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
   ENDMETHOD.
@@ -310,7 +310,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS                = 6.
     IF sy-subrc <> 0.
       _unlock( ).
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
     LOOP AT certlist ASSIGNING <certlist>.
@@ -334,7 +334,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS              = 5.
       IF sy-subrc <> 0.
         _unlock( ).
-        RAISE EXCEPTION TYPE zcx_error_t100.
+        RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
 
       certificate-date_from = certificate-validfrom(8).
@@ -367,7 +367,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS                = 6.
     IF sy-subrc <> 0.
       _unlock( ).
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
     CALL FUNCTION 'SSFC_PARSE_CERTIFICATE'
@@ -387,7 +387,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS              = 5.
     IF sy-subrc <> 0.
       _unlock( ).
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
     cert_current-date_from = cert_current-validfrom(8).
@@ -413,14 +413,15 @@ CLASS zcl_strust2 IMPLEMENTATION.
       EXCEPTIONS
         authority_missing = 1
         database_failed   = 2
-        OTHERS            = 3.
+        file_write_failed = 3
+        OTHERS            = 4.
     IF sy-subrc <> 0.
       IF create = abap_true.
         _create(
           id  = id
           org = org ).
       ELSE.
-        RAISE EXCEPTION TYPE zcx_error_t100.
+        RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
     ENDIF.
 
@@ -450,7 +451,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS                = 6.
       IF sy-subrc <> 0.
         _unlock( ).
-        RAISE EXCEPTION TYPE zcx_error_t100.
+        RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
 
       is_dirty = abap_true.
@@ -493,7 +494,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
                 OTHERS                = 6.
             IF sy-subrc <> 0.
               _unlock( ).
-              RAISE EXCEPTION TYPE zcx_error_t100.
+              RAISE EXCEPTION TYPE /apmg/cx_error_t100.
             ENDIF.
 
             is_dirty = abap_true.
@@ -524,7 +525,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
           OTHERS              = 6.
       IF sy-subrc <> 0.
         _unlock( ).
-        RAISE EXCEPTION TYPE zcx_error_t100.
+        RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
 
       is_dirty = abap_true.
@@ -582,7 +583,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         ssf_unknown_error = 1
         OTHERS            = 2.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
     tempfile = psepath.
@@ -603,7 +604,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         internal_error  = 3
         OTHERS          = 4.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
   ENDMETHOD.
@@ -616,7 +617,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
     ENDIF.
 
     IF profile IS INITIAL.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Missing profile. Call "load" first'(011).
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Missing profile. Call "load" first'(011).
     ENDIF.
 
   ENDMETHOD.
@@ -644,7 +645,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         OTHERS            = 4.
     IF sy-subrc <> 0.
       _unlock( ).
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
     IF profile(3) = 'SSL'.
@@ -677,11 +678,11 @@ CLASS zcl_strust2 IMPLEMENTATION.
     TRY.
         DELETE DATASET tempfile.
       CATCH cx_sy_file_open.
-        RAISE EXCEPTION TYPE zcx_error_text
+        RAISE EXCEPTION TYPE /apmg/cx_error_text
           EXPORTING
             text = 'Error deleting file'(020) && | { tempfile }|.
       CATCH cx_sy_file_authority.
-        RAISE EXCEPTION TYPE zcx_error_text
+        RAISE EXCEPTION TYPE /apmg/cx_error_text
           EXPORTING
             text = 'Not authorized to delete file'(030) && | { tempfile }|.
     ENDTRY.
@@ -696,7 +697,7 @@ CLASS zcl_strust2 IMPLEMENTATION.
         internal_error  = 3
         OTHERS          = 4.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_error_t100.
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
   ENDMETHOD.
