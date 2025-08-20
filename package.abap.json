@@ -1,6 +1,6 @@
 {
   "name": "strust",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "description": "Add, update, or remove certificates from ABAP Trust Management",
   "type": "module",
   "keywords": [
