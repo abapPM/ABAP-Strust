@@ -58,7 +58,6 @@ START-OF-SELECTION.
       STOP.
   ENDTRY.
 
-
   WRITE: /'Domain:', p_domain COLOR COL_POSITIVE.
   SKIP.
 
@@ -146,6 +145,9 @@ START-OF-SELECTION.
         WRITE: / 'Test run' COLOR COL_TOTAL, '(changes were not saved)'.
         STOP.
       ENDIF.
+
+      " Load and lock
+      strust->load( ).
 
       " Save changes
       strust->update( ).

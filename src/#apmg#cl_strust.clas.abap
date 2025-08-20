@@ -13,7 +13,7 @@ CLASS /apmg/cl_strust DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.0.0' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.0.1' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context ##NEEDED,
@@ -250,11 +250,11 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
   METHOD constructor.
 
+    DATA profile TYPE localfile.
+
     me->context = context.
     me->applic  = application.
     profilepw   = password.
-
-    DATA(profile_cast) = CONV localfile( profile ).
 
     CALL FUNCTION 'SSFPSE_FILENAME'
       EXPORTING
@@ -264,13 +264,15 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
         psename       = psename
         psetext       = psetext
         distrib       = distrib
-        profile       = profile_cast
+        profile       = profile
       EXCEPTIONS
         pse_not_found = 1
         OTHERS        = 2.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
+
+    me->profile = profile.
 
   ENDMETHOD.
 
@@ -290,8 +292,6 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
     DATA:
       certlist    TYPE ssfbintab,
       certificate TYPE ty_certattr.
-
-    FIELD-SYMBOLS <certlist> LIKE LINE OF certlist.
 
     _profile( ).
 
@@ -313,7 +313,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
-    LOOP AT certlist ASSIGNING <certlist>.
+    LOOP AT certlist ASSIGNING FIELD-SYMBOL(<certlist>).
 
       CLEAR certificate.
 
@@ -432,6 +432,8 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
   METHOD remove.
 
+    _profile( ).
+
     " Remove certificate
     LOOP AT certs_current ASSIGNING FIELD-SYMBOL(<cert>) WHERE subject = subject.
 
@@ -468,6 +470,8 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
 
   METHOD update.
+
+    _profile( ).
 
     " Remove expired certificates
     IF remove_expired = abap_true.
@@ -523,7 +527,14 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
           ssf_krn_invalid_par = 4
           ssf_krn_certexists  = 5
           OTHERS              = 6.
-      IF sy-subrc <> 0.
+
+      IF sy-subrc = 5.
+        " SAP message is misleading so use a better text
+        _unlock( ).
+        RAISE EXCEPTION TYPE /apmg/cx_error_text
+          EXPORTING
+            text = |Certificate { <cert_new>-subject } already exists|.
+      ELSEIF sy-subrc <> 0.
         _unlock( ).
         RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
@@ -548,7 +559,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       subject     TYPE certsubjct,
       psepath     TYPE trfile.
 
-*   Create new PSE (using RSA-SHA256 2048 which is the default in STRUST in recent releases)
+    " Create new PSE (using RSA-SHA256 2048 which is the default in STRUST in recent releases)
     IF id IS INITIAL.
       CASE applic.
         WHEN 'DFAULT'.
