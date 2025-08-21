@@ -53,6 +53,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_MAIN</KEY>
+     <ENTRY>Add domain certificate</ENTRY>
+     <LENGTH>30</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>P_PASSWD</KEY>
      <ENTRY>Password</ENTRY>
      <LENGTH>16</LENGTH>

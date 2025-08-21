@@ -21,8 +21,9 @@ SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-t03.
   PARAMETERS:
     p_days   TYPE i DEFAULT 30,
     p_passwd TYPE string LOWER CASE,
-    p_root   AS CHECKBOX DEFAULT abap_false,
-    p_remove AS CHECKBOX DEFAULT abap_false,
+    p_root   AS CHECKBOX DEFAULT abap_true,
+    p_main   AS CHECKBOX DEFAULT abap_true,
+    p_remove AS CHECKBOX DEFAULT abap_true,
     p_test   AS CHECKBOX DEFAULT abap_true.
 SELECTION-SCREEN END OF BLOCK b3.
 
@@ -167,27 +168,31 @@ START-OF-SELECTION.
 
         ENDIF.
 
-        " Main certificate
-        DATA(peer_pem)       = ajson->get( '/peerCertificate/pem' ).
-        DATA(peer_date_from) = ajson->get( '/peerCertificate/validFrom' ).
-        DATA(peer_date_to)   = ajson->get( '/peerCertificate/validTo' ).
-        DATA(peer_subject)   = 'CN=' && ajson->get( '/peerCertificate/subject/CN' ).
-        IF peer_subject = 'CN='.
-          peer_subject = 'O=' && ajson->get( '/peerCertificate/subject/O' ).
-        ENDIF.
-        IF strlen( peer_subject ) > 78.
-          peer_subject = peer_subject(75) && '...'.
-        ENDIF.
+        " Domain certificate
+        IF p_main = abap_true.
 
-        IF p_test = abap_false.
-          strust->add_pem( peer_pem ).
-        ENDIF.
+          DATA(peer_pem)       = ajson->get( '/peerCertificate/pem' ).
+          DATA(peer_date_from) = ajson->get( '/peerCertificate/validFrom' ).
+          DATA(peer_date_to)   = ajson->get( '/peerCertificate/validTo' ).
+          DATA(peer_subject)   = 'CN=' && ajson->get( '/peerCertificate/subject/CN' ).
+          IF peer_subject = 'CN='.
+            peer_subject = 'O=' && ajson->get( '/peerCertificate/subject/O' ).
+          ENDIF.
+          IF strlen( peer_subject ) > 78.
+            peer_subject = peer_subject(75) && '...'.
+          ENDIF.
 
-        WRITE: /10 'New certificate added' COLOR COL_POSITIVE,
-          AT 50 peer_subject,
-          AT 130 peer_date_from(10),
-          AT 145 peer_date_to(10),
-          AT 158 ''.
+          IF p_test = abap_false.
+            strust->add_pem( peer_pem ).
+          ENDIF.
+
+          WRITE: /10 'New certificate added' COLOR COL_POSITIVE,
+            AT 50 peer_subject,
+            AT 130 peer_date_from(10),
+            AT 145 peer_date_to(10),
+            AT 158 ''.
+
+        ENDIF.
 
       CATCH /apmg/cx_error INTO error.
         WRITE: /10 'Error updating certificate:' COLOR COL_NEGATIVE, error->get_text( ).
