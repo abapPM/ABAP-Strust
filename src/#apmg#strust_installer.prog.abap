@@ -15,7 +15,16 @@ SELECTION-SCREEN END OF BLOCK b1.
 
 SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-t02.
   PARAMETERS p_domain TYPE string OBLIGATORY LOWER CASE.
+  SELECTION-SCREEN SKIP.
+  PARAMETERS p_text TYPE string LOWER CASE.
 SELECTION-SCREEN END OF BLOCK b2.
+
+SELECTION-SCREEN BEGIN OF BLOCK b4 WITH FRAME TITLE TEXT-t04.
+  PARAMETERS:
+    p_ssl_id TYPE ssfappl DEFAULT 'ANONYM',
+    p_host   TYPE string OBLIGATORY LOWER CASE,
+    p_endpnt TYPE string OBLIGATORY LOWER CASE.
+SELECTION-SCREEN END OF BLOCK b4.
 
 SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-t03.
   PARAMETERS:
@@ -31,11 +40,19 @@ INITIALIZATION.
     + cl_abap_pse=>authority_check( iv_activity = '02' )
     + cl_abap_pse=>authority_check( iv_activity = '06' ).
   IF subrc <> 0.
-    MESSAGE 'You are not authorized to update certificates' TYPE 'E'.
+    MESSAGE 'You are not authorized to install certificates' TYPE 'I' DISPLAY LIKE 'E'.
     STOP.
   ENDIF.
 
+  p_host   = /apmg/cl_strust_cert_api=>c_api_host.
+  p_endpnt = /apmg/cl_strust_cert_api=>c_api_endpoint.
+
 START-OF-SELECTION.
+
+  IF p_root IS INITIAL AND p_main IS INITIAL.
+    MESSAGE 'No certificates selected for installation' TYPE 'I' DISPLAY LIKE 'E'.
+    STOP.
+  ENDIF.
 
   CALL FUNCTION 'SSFPSE_PARAMETER'
     EXPORTING
@@ -45,7 +62,7 @@ START-OF-SELECTION.
       pse_not_found = 1
       OTHERS        = 2.
   IF sy-subrc <> 0.
-    MESSAGE 'PSE not found' TYPE 'E'.
+    MESSAGE 'PSE not found' TYPE 'I' DISPLAY LIKE 'E'.
     STOP.
   ENDIF.
 
@@ -53,9 +70,9 @@ START-OF-SELECTION.
       DATA(strust) = /apmg/cl_strust=>create(
         context     = p_cont
         application = p_appl
-        password    = p_passwd ).
+        password    = p_passwd )->load( ).
     CATCH /apmg/cx_error INTO DATA(error).
-      MESSAGE error TYPE 'E'.
+      MESSAGE error TYPE 'I' DISPLAY LIKE 'E'.
       STOP.
   ENDTRY.
 
@@ -63,7 +80,11 @@ START-OF-SELECTION.
   SKIP.
 
   TRY.
-      DATA(json) = /apmg/cl_strust_cert_api=>get_certificates( p_domain ).
+      DATA(json) = /apmg/cl_strust_cert_api=>get_certificates(
+        ssl_id   = p_ssl_id
+        domain   = p_domain
+        host     = p_host
+        endpoint = p_endpnt ).
 
       TRY.
           DATA(ajson) = zcl_ajson=>parse( json ).
@@ -150,11 +171,7 @@ START-OF-SELECTION.
         WRITE: / 'Test run' COLOR COL_TOTAL, '(changes were not saved)'.
       ELSE.
 
-        " Load and lock
-        strust->load( ).
-
-        " Save changes
-        strust->update( ).
+        strust->update( p_text ).
 
         WRITE / 'Certificates saved' COLOR COL_POSITIVE.
 

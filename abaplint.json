@@ -48,7 +48,8 @@
         "DEVC",
         "INTF",
         "NSPC",
-        "PROG"
+        "PROG",
+        "TABL"
       ]
     },
     "ambiguous_statement": true,
@@ -162,7 +163,9 @@
     "method_overwrites_builtin": true,
     "method_parameter_names": false,
     "mix_returning": true,
-    "modify_only_own_db_tables": true,
+    "modify_only_own_db_tables": {
+      "ownTables": "/APMG/STRUST_LOG"
+    },
     "msag_consistency": true,
     "names_no_dash": true,
     "nesting": true,
@@ -216,7 +219,7 @@
       "sucu": "^Z",
       "suso": "^Z",
       "sxci": "^Z",
-      "tabl": "^Z",
+      "tabl": "^/APMG/STRUST",
       "tran": "^Z",
       "ttyp": "^Z",
       "wdya": "^Z",
@@ -296,3 +299,4 @@
     "version": "v750"
   }
 }
+
