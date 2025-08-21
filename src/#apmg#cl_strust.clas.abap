@@ -13,7 +13,7 @@ CLASS /apmg/cl_strust DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.0.1' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.0.2' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context ##NEEDED,
