@@ -14,11 +14,17 @@ CLASS /apmg/cl_strust_cert_api DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
+    CONSTANTS:
+      c_api_host     TYPE string VALUE 'https://tools.abappm.com',
+      c_api_endpoint TYPE string VALUE '/api/v1/certificates'.
+
     CLASS-METHODS get_certificates
       IMPORTING
         !domain       TYPE string
         !ssl_id       TYPE ssfapplssl DEFAULT 'ANONYM'
         !debug        TYPE abap_bool DEFAULT abap_false
+        !host         TYPE string DEFAULT c_api_host
+        !endpoint     TYPE string DEFAULT c_api_endpoint
       RETURNING
         VALUE(result) TYPE string
       RAISING
@@ -27,13 +33,10 @@ CLASS /apmg/cl_strust_cert_api DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS:
-      c_api_host     TYPE string VALUE 'https://tools.abappm.com',
-      c_api_endpoint TYPE string VALUE '/api/v1/certificates'.
-
     CLASS-METHODS _client
       IMPORTING
         ssl_id        TYPE ssfapplssl
+        host          TYPE string
         uri           TYPE string
       RETURNING
         VALUE(result) TYPE REF TO if_http_client
@@ -71,7 +74,8 @@ CLASS /apmg/cl_strust_cert_api IMPLEMENTATION.
 
     DATA(http_client) = _client(
       ssl_id = ssl_id
-      uri    = |{ c_api_endpoint }?domain={ query }| ).
+      host   = host
+      uri    = |{ endpoint }?domain={ query }| ).
 
     DATA(fetch_response) = _response( http_client ).
 
@@ -98,7 +102,7 @@ CLASS /apmg/cl_strust_cert_api IMPLEMENTATION.
 
     cl_http_client=>create_by_url(
       EXPORTING
-        url    = c_api_host
+        url    = host
         ssl_id = ssl_id
       IMPORTING
         client = result

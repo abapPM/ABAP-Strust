@@ -13,7 +13,7 @@ CLASS /apmg/cl_strust DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.0.2' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.1.0' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context ##NEEDED,
@@ -113,6 +113,7 @@ CLASS /apmg/cl_strust DEFINITION
     METHODS remove
       IMPORTING
         !subject      TYPE string
+        !comment      TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO /apmg/cl_strust
       RAISING
@@ -120,7 +121,9 @@ CLASS /apmg/cl_strust DEFINITION
 
     METHODS update
       IMPORTING
+        !comment        TYPE string OPTIONAL
         !remove_expired TYPE abap_bool DEFAULT abap_false
+          PREFERRED PARAMETER comment
       RETURNING
         VALUE(result)   TYPE ty_certattr_tt
       RAISING
@@ -143,6 +146,7 @@ CLASS /apmg/cl_strust DEFINITION
       certs_new     TYPE ty_certattr_tt,
       cert_current  TYPE ty_certattr,
       certs_current TYPE ty_certattr_tt,
+      logs          TYPE STANDARD TABLE OF /apmg/strust_log WITH KEY timestamp counter,
       is_dirty      TYPE abap_bool.
 
     METHODS _create
@@ -165,6 +169,23 @@ CLASS /apmg/cl_strust DEFINITION
         /apmg/cx_error.
 
     METHODS _save
+      RAISING
+        /apmg/cx_error.
+
+    METHODS _log_add
+      IMPORTING
+        !subject   TYPE ty_certattr-subject
+        !issuer    TYPE ty_certattr-issuer
+        !date_from TYPE ty_certattr-date_from
+        !date_to   TYPE ty_certattr-date_to
+        !status    TYPE /apmg/strust_log-status
+        !message   TYPE /apmg/strust_log-message
+      RAISING
+        /apmg/cx_error.
+
+    METHODS _log_save
+      IMPORTING
+        !comment TYPE string
       RAISING
         /apmg/cx_error.
 
@@ -434,7 +455,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
     _profile( ).
 
-    " Remove certificate
+    " Remove certificates
     LOOP AT certs_current ASSIGNING FIELD-SYMBOL(<cert>) WHERE subject = subject.
 
       CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
@@ -456,13 +477,21 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
         RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
 
+      _log_add(
+        subject   = <cert>-subject
+        issuer    = <cert>-issuer
+        date_from = <cert>-date_from
+        date_to   = <cert>-date_to
+        status    = icon_led_green
+        message   = 'Removed' ).
+
       is_dirty = abap_true.
 
     ENDLOOP.
 
     _save( ).
 
-    _unlock( ).
+    _log_save( comment ).
 
     result = me.
 
@@ -501,6 +530,14 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
               RAISE EXCEPTION TYPE /apmg/cx_error_t100.
             ENDIF.
 
+            _log_add(
+              subject   = <cert>-subject
+              issuer    = <cert>-issuer
+              date_from = <cert>-date_from
+              date_to   = <cert>-date_to
+              status    = icon_led_green
+              message   = 'Removed' ).
+
             is_dirty = abap_true.
           ELSE.
             " Certificate already exists, no update necessary
@@ -512,7 +549,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       ENDLOOP.
     ENDIF.
 
-    " Add new certificates to PSE
+    " Add new certificates
     LOOP AT certs_new ASSIGNING <cert_new>.
 
       CALL FUNCTION 'SSFC_PUT_CERTIFICATE'
@@ -539,12 +576,21 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
         RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
 
+      _log_add(
+        subject   = <cert_new>-subject
+        issuer    = <cert_new>-issuer
+        date_from = <cert_new>-date_from
+        date_to   = <cert_new>-date_to
+        status    = icon_led_green
+        message   = 'Added' ).
+
       is_dirty = abap_true.
+
     ENDLOOP.
 
     _save( ).
 
-    _unlock( ).
+    _log_save( comment ).
 
     result = certs_new.
 
@@ -621,6 +667,40 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD _log_add.
+
+    DATA(log) = VALUE /apmg/strust_log(
+      cert_subject = subject
+      cert_issues  = issuer
+      date_from    = date_from
+      date_to      = date_to
+      status       = status
+      message      = message ).
+
+    INSERT log INTO TABLE logs.
+
+  ENDMETHOD.
+
+
+  METHOD _log_save.
+
+    GET TIME STAMP FIELD DATA(timestamp).
+
+    LOOP AT logs ASSIGNING FIELD-SYMBOL(<log>).
+      <log>-timestamp = timestamp.
+      <log>-counter   = sy-tabix.
+      <log>-username  = sy-uname.
+      <log>-comments  = comment.
+    ENDLOOP.
+
+    INSERT /apmg/strust_log FROM TABLE logs.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Error saving comments to log table'(012).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD _profile.
 
     IF tempfile IS NOT INITIAL.
@@ -679,6 +759,8 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
     ELSE.
       MESSAGE 'Certificate was saved successfully' TYPE 'S'.
     ENDIF.
+
+    _unlock( ).
 
   ENDMETHOD.
 
