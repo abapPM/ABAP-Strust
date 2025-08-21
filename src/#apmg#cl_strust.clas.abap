@@ -693,7 +693,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       <log>-comments  = comment.
     ENDLOOP.
 
-    INSERT /apmg/strust_log FROM TABLE logs.
+    INSERT /apmg/strust_log FROM TABLE @logs.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Error saving comments to log table'(012).
     ENDIF.

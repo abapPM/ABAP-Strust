@@ -171,7 +171,7 @@ START-OF-SELECTION.
         WRITE: / 'Test run' COLOR COL_TOTAL, '(changes were not saved)'.
       ELSE.
 
-        strust->update( comment = p_text ).
+        strust->update( p_text ).
 
         WRITE / 'Certificates saved' COLOR COL_POSITIVE.
 
