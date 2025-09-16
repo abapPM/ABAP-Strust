@@ -129,6 +129,10 @@ CLASS /apmg/cl_strust DEFINITION
       RAISING
         /apmg/cx_error.
 
+    METHODS get_logs
+      RETURNING
+        VALUE(result) TYPE STANDARD TABLE OF /apmg/strust_log WITH DEFAULT KEY.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -593,6 +597,13 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
     _log_save( comment ).
 
     result = certs_new.
+
+  ENDMETHOD.
+
+
+  METHOD get_logs.
+
+    result = logs.
 
   ENDMETHOD.
 

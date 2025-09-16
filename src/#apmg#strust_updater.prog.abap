@@ -241,6 +241,30 @@ START-OF-SELECTION.
         remove_expired = p_remove ).
 
       WRITE / 'Certificates saved' COLOR COL_POSITIVE.
+
+      IF p_remove = abap_true.
+        DATA(logs) TYPE STANDARD TABLE OF /apmg/strust_log WITH DEFAULT KEY.
+        logs = strust->get_logs( ).
+
+        DATA(removed_count) = 0.
+
+        LOOP AT logs ASSIGNING FIELD-SYMBOL(<log>) WHERE message = 'Removed'.
+          IF removed_count = 0.
+            SKIP.
+            WRITE / 'Certificates removed:' COLOR COL_TOTAL.
+          ENDIF.
+          removed_count += 1.
+          WRITE: /5 <log>-cert_subject,
+            AT 130 |{ <log>-date_from DATE = ISO }|,
+            AT 145 |{ <log>-date_to DATE = ISO }|,
+            AT 158 ''.
+        ENDLOOP.
+
+        IF removed_count = 0.
+          SKIP.
+          WRITE / 'No expired certificates were removed' COLOR COL_TOTAL.
+        ENDIF.
+      ENDIF.
     CATCH /apmg/cx_error INTO error.
       WRITE: / 'Error updating certificate:' COLOR COL_NEGATIVE, error->get_text( ).
   ENDTRY.
