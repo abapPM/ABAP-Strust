@@ -175,10 +175,10 @@ START-OF-SELECTION.
 
         " Display summary of changes
         IF lines( install_result-added ) > 0.
-          WRITE: / |{ lines( install_result-added ) } certificate(s) added| COLOR COL_POSITIVE.
+          WRITE / |{ lines( install_result-added ) } certificate(s) added| COLOR COL_POSITIVE.
         ENDIF.
         IF lines( install_result-removed ) > 0.
-          WRITE: / |{ lines( install_result-removed ) } certificate(s) removed| COLOR COL_TOTAL.
+          WRITE / |{ lines( install_result-removed ) } certificate(s) removed| COLOR COL_TOTAL.
         ENDIF.
 
         WRITE / 'Certificates saved' COLOR COL_POSITIVE.

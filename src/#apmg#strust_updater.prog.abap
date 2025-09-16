@@ -242,7 +242,7 @@ START-OF-SELECTION.
 
       " Display removed certificates
       IF lines( update_result-removed ) > 0.
-        WRITE: / 'Removed certificates:' COLOR COL_TOTAL.
+        WRITE / 'Removed certificates:' COLOR COL_TOTAL.
         LOOP AT update_result-removed ASSIGNING FIELD-SYMBOL(<removed>).
           WRITE: /5 <removed>-subject COLOR COL_NEGATIVE,
             AT 130 |{ <removed>-date_from DATE = ISO }|,
@@ -254,7 +254,7 @@ START-OF-SELECTION.
 
       " Display added certificates
       IF lines( update_result-added ) > 0.
-        WRITE: / 'Added certificates:' COLOR COL_POSITIVE.
+        WRITE / 'Added certificates:' COLOR COL_POSITIVE.
         LOOP AT update_result-added ASSIGNING FIELD-SYMBOL(<added>).
           WRITE: /5 <added>-subject COLOR COL_POSITIVE,
             AT 130 |{ <added>-date_from DATE = ISO }|,
