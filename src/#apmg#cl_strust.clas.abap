@@ -52,7 +52,11 @@ CLASS /apmg/cl_strust DEFINITION
         date_to     TYPE d,
         certificate TYPE xstring,
       END OF ty_certattr,
-      ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH KEY subject issuer serialno validfrom validto.
+      ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH KEY subject issuer serialno validfrom validto,
+      BEGIN OF ty_update_result,
+        added   TYPE ty_certattr_tt,
+        removed TYPE ty_certattr_tt,
+      END OF ty_update_result.
 
     CLASS-METHODS create
       IMPORTING
@@ -125,7 +129,7 @@ CLASS /apmg/cl_strust DEFINITION
         !remove_expired TYPE abap_bool DEFAULT abap_false
           PREFERRED PARAMETER comment
       RETURNING
-        VALUE(result)   TYPE ty_certattr_tt
+        VALUE(result)   TYPE ty_update_result
       RAISING
         /apmg/cx_error.
 
@@ -144,6 +148,7 @@ CLASS /apmg/cl_strust DEFINITION
       profilepw     TYPE ssfpabpw,
       cert_own      TYPE xstring,
       certs_new     TYPE ty_certattr_tt,
+      certs_removed TYPE ty_certattr_tt,
       cert_current  TYPE ty_certattr,
       certs_current TYPE ty_certattr_tt,
       logs          TYPE STANDARD TABLE OF /apmg/strust_log WITH KEY timestamp counter,
@@ -421,7 +426,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
   METHOD load.
 
-    CLEAR is_dirty.
+    CLEAR: is_dirty, certs_removed.
 
     _lock( ).
 
@@ -500,6 +505,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
   METHOD update.
 
+    CLEAR certs_removed.
     _profile( ).
 
     " Remove expired certificates
@@ -529,6 +535,9 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
               _unlock( ).
               RAISE EXCEPTION TYPE /apmg/cx_error_t100.
             ENDIF.
+
+            " Track removed certificate
+            APPEND <cert> TO certs_removed.
 
             _log_add(
               subject   = <cert>-subject
@@ -592,7 +601,8 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
     _log_save( comment ).
 
-    result = certs_new.
+    result-added   = certs_new.
+    result-removed = certs_removed.
 
   ENDMETHOD.
 

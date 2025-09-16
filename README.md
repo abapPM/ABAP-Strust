@@ -61,7 +61,9 @@ IF drop = abap_true.
   strust->remove( c_subject ).
 ELSE.
   strust->add_pem( '<your_certificate>' ).
-  strust->update( ).
+  DATA(result) = strust->update( ).
+  " result-added contains newly added certificates
+  " result-removed contains removed certificates (if remove_expired = abap_true)
 ENDIF.
 ```
 
