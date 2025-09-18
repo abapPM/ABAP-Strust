@@ -426,7 +426,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
   METHOD load.
 
-    CLEAR: is_dirty, certs_removed.
+    CLEAR: is_dirty, certs_removed, certs_current.
 
     _lock( ).
 
@@ -506,6 +506,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
   METHOD update.
 
     CLEAR certs_removed.
+
     _profile( ).
 
     " Remove expired certificates
