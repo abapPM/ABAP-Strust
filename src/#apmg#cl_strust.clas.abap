@@ -633,9 +633,9 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       IMPORTING
         license_number = license_num.
 
-    REPLACE '%SID' WITH sy-sysid INTO new_id.
-    REPLACE '%LIC' WITH license_num INTO new_id.
-    REPLACE '%ORG' WITH org INTO new_id.
+    REPLACE '%SID' IN new_id WITH sy-sysid.
+    REPLACE '%LIC' IN new_id WITH license_num.
+    REPLACE '%ORG' IN new_id WITH org.
     CONDENSE new_id.
 
     subject = new_id.
