@@ -26,6 +26,14 @@ SELECTION-SCREEN BEGIN OF BLOCK b4 WITH FRAME TITLE TEXT-t04.
     p_endpnt TYPE string OBLIGATORY LOWER CASE.
 SELECTION-SCREEN END OF BLOCK b4.
 
+SELECTION-SCREEN BEGIN OF BLOCK b5 WITH FRAME TITLE TEXT-t05.
+  PARAMETERS:
+    p_prhost TYPE string LOWER CASE,
+    p_prport TYPE string LOWER CASE,
+    p_pruser TYPE string LOWER CASE,
+    p_prpass TYPE string LOWER CASE.
+SELECTION-SCREEN END OF BLOCK b5.
+
 SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-t03.
   PARAMETERS:
     p_passwd TYPE string LOWER CASE,
@@ -81,10 +89,14 @@ START-OF-SELECTION.
 
   TRY.
       DATA(json) = /apmg/cl_strust_cert_api=>get_certificates(
-        ssl_id   = p_ssl_id
-        domain   = p_domain
-        host     = p_host
-        endpoint = p_endpnt ).
+        ssl_id        = p_ssl_id
+        domain        = p_domain
+        host          = p_host
+        endpoint      = p_endpnt
+        proxy_host    = p_prhost
+        proxy_service = p_prport
+        proxy_user    = p_pruser
+        proxy_passwd  = p_prpass ).
 
       TRY.
           DATA(ajson) = zcl_ajson=>parse( json ).

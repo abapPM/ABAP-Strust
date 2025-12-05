@@ -13,7 +13,7 @@ CLASS /apmg/cl_strust DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.1.1' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.2.0' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context ##NEEDED,
@@ -210,7 +210,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
     " Remove Header and Footer
     TRY.
-        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN certb64 SUBMATCHES DATA(base64).
+        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN certb64 SUBMATCHES DATA(base64) ##REGEX_POSIX.
         IF sy-subrc = 0.
           ASSIGN base64 TO FIELD-SYMBOL(<data>).
           ASSERT sy-subrc = 0.

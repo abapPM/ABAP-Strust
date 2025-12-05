@@ -20,13 +20,17 @@ CLASS /apmg/cl_strust_cert_api DEFINITION
 
     CLASS-METHODS get_certificates
       IMPORTING
-        !domain       TYPE string
-        !ssl_id       TYPE ssfapplssl DEFAULT 'ANONYM'
-        !debug        TYPE abap_bool DEFAULT abap_false
-        !host         TYPE string DEFAULT c_api_host
-        !endpoint     TYPE string DEFAULT c_api_endpoint
+        !domain        TYPE string
+        !ssl_id        TYPE ssfapplssl DEFAULT 'ANONYM'
+        !debug         TYPE abap_bool DEFAULT abap_false
+        !host          TYPE string DEFAULT c_api_host
+        !endpoint      TYPE string DEFAULT c_api_endpoint
+        !proxy_host    TYPE string OPTIONAL
+        !proxy_service TYPE string OPTIONAL
+        !proxy_user    TYPE string OPTIONAL
+        !proxy_passwd  TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE string
+        VALUE(result)  TYPE string
       RAISING
         /apmg/cx_error.
 
@@ -38,6 +42,10 @@ CLASS /apmg/cl_strust_cert_api DEFINITION
         ssl_id        TYPE ssfapplssl
         host          TYPE string
         uri           TYPE string
+        proxy_host    TYPE string
+        proxy_service TYPE string
+        proxy_user    TYPE string
+        proxy_passwd  TYPE string
       RETURNING
         VALUE(result) TYPE REF TO if_http_client
       RAISING
@@ -73,9 +81,13 @@ CLASS /apmg/cl_strust_cert_api IMPLEMENTATION.
     query = cl_abap_dyn_prg=>escape_xss_url( query ).
 
     DATA(http_client) = _client(
-      ssl_id = ssl_id
-      host   = host
-      uri    = |{ endpoint }?domain={ query }| ).
+      ssl_id        = ssl_id
+      host          = host
+      proxy_host    = proxy_host
+      proxy_service = proxy_service
+      proxy_user    = proxy_user
+      proxy_passwd  = proxy_passwd
+      uri           = |{ endpoint }?domain={ query }| ).
 
     DATA(fetch_response) = _response( http_client ).
 
@@ -102,12 +114,16 @@ CLASS /apmg/cl_strust_cert_api IMPLEMENTATION.
 
     cl_http_client=>create_by_url(
       EXPORTING
-        url    = host
-        ssl_id = ssl_id
+        url           = host
+        ssl_id        = ssl_id
+        proxy_host    = proxy_host
+        proxy_service = proxy_service
+        proxy_user    = proxy_user
+        proxy_passwd  = proxy_passwd
       IMPORTING
-        client = result
+        client        = result
       EXCEPTIONS
-        OTHERS = 99 ).
+        OTHERS        = 99 ).
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
