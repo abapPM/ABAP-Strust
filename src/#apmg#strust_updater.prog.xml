@@ -35,6 +35,12 @@
      <LENGTH>80</LENGTH>
     </item>
     <item>
+     <ID>I</ID>
+     <KEY>T05</KEY>
+     <ENTRY>Proxy</ENTRY>
+     <LENGTH>80</LENGTH>
+    </item>
+    <item>
      <ID>R</ID>
      <ENTRY>Trust Management: Certificate Updater</ENTRY>
      <LENGTH>37</LENGTH>
@@ -80,6 +86,30 @@
      <KEY>P_PASSWD</KEY>
      <ENTRY>Password</ENTRY>
      <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PRHOST</KEY>
+     <ENTRY>Host</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PRPASS</KEY>
+     <ENTRY>Password</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PRPORT</KEY>
+     <ENTRY>Port</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PRUSER</KEY>
+     <ENTRY>User</ENTRY>
+     <LENGTH>12</LENGTH>
     </item>
     <item>
      <ID>S</ID>

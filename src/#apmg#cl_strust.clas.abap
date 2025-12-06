@@ -13,7 +13,7 @@ CLASS /apmg/cl_strust DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.1.1' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.2.0' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context ##NEEDED,
@@ -210,7 +210,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
     " Remove Header and Footer
     TRY.
-        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN certb64 SUBMATCHES DATA(base64).
+        FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN certb64 SUBMATCHES DATA(base64) ##REGEX_POSIX.
         IF sy-subrc = 0.
           ASSIGN base64 TO FIELD-SYMBOL(<data>).
           ASSERT sy-subrc = 0.
@@ -633,9 +633,9 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       IMPORTING
         license_number = license_num.
 
-    REPLACE '%SID' WITH sy-sysid INTO new_id.
-    REPLACE '%LIC' WITH license_num INTO new_id.
-    REPLACE '%ORG' WITH org INTO new_id.
+    REPLACE '%SID' IN new_id WITH sy-sysid.
+    REPLACE '%LIC' IN new_id WITH license_num.
+    REPLACE '%ORG' IN new_id WITH org.
     CONDENSE new_id.
 
     subject = new_id.
