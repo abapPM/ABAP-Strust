@@ -13,31 +13,52 @@ CLASS /apmg/cl_strust DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.2.0' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.3.0' ##NEEDED.
 
     CONSTANTS:
-      BEGIN OF c_context ##NEEDED,
+      BEGIN OF c_context,
         prog TYPE psecontext VALUE 'PROG', " Namespace of transaction STRUST
         smim TYPE psecontext VALUE 'SMIM', " Namespace of table STRUSTSMIM
-        ssfa TYPE psecontext VALUE 'SSFA', " Namespace of table SSFARGS
+        ssfa TYPE psecontext VALUE 'SSFA', " Namespace of table SSFARGS (SSFAPPLIC)
         ssfv TYPE psecontext VALUE 'SSFV', " Namespace of table SSFVKEYDEF
         sslc TYPE psecontext VALUE 'SSLC', " Namespace of table STRUSTSSL
         ssls TYPE psecontext VALUE 'SSLS', " Namespace of table STRUSTSSLS
         wsse TYPE psecontext VALUE 'WSSE', " Namespace of table STRUSTWSSE
       END OF c_context,
-      BEGIN OF c_application ##NEEDED,
-        syst   TYPE ssfappl VALUE '<SYST>', " PROG:            System PSE
-        sncs   TYPE ssfappl VALUE '<SNCS>', " PROG:            SNC SAP Cryptolib
-        file   TYPE ssfappl VALUE '<FILE>', " PROG:            Files
-        ssls   TYPE ssfappl VALUE '<SSLS>', " PROG:            SSL backward compatibility
-        spki   TYPE ssfappl VALUE '<SPKI>', " SSLC:            System PKI
-        dfault TYPE ssfappl VALUE 'DFAULT', " SSLC,SSLS,WSSE:  SSL Client/Server: Standard
-        anonym TYPE ssfappl VALUE 'ANONYM', " SSLC:            SSL Client: Anonymous
-        sapsup TYPE ssfappl VALUE 'SAPSUP', " SSLC:            SSL Client: SAP Support Portal
-        wsse   TYPE ssfappl VALUE 'WSSE',   " WSSE:            SSL Client: Web Service Security
-        wsscrt TYPE ssfappl VALUE 'WSSCRT', " WSSE:            Other System Encryption Certificates
-        wwkey  TYPE ssfappl VALUE 'WSSKEY', " WSSE:            WS Security Keys
-      END OF c_application.
+      BEGIN OF c_context_description,
+        prog TYPE ddtext VALUE 'System PSE',
+        smim TYPE ddtext VALUE 'SMIME Standard',
+        ssfa TYPE ddtext VALUE 'SSF',
+        ssfv TYPE ddtext VALUE 'SSF Key Versions',
+        sslc TYPE ddtext VALUE 'SSL Client',
+        ssls TYPE ddtext VALUE 'SSL Server',
+        wsse TYPE ddtext VALUE 'Web Service Security',
+      END OF c_context_description,
+      BEGIN OF c_application,
+        syst   TYPE ssfappl VALUE '<SYST>', " PROG
+        sncs   TYPE ssfappl VALUE '<SNCS>', " PROG
+        file   TYPE ssfappl VALUE '<FILE>', " PROG
+        ssls   TYPE ssfappl VALUE '<SSLS>', " PROG
+        spki   TYPE ssfappl VALUE '<SPKI>', " SSLC
+        dfault TYPE ssfappl VALUE 'DFAULT', " SSLC,SSLS,WSSE,SMIM
+        anonym TYPE ssfappl VALUE 'ANONYM', " SSLC
+        sapsup TYPE ssfappl VALUE 'SAPSUP', " SSLC
+        wsscrt TYPE ssfappl VALUE 'WSSCRT', " WSSE
+        wsskey TYPE ssfappl VALUE 'WSSKEY', " WSSE
+      END OF c_application,
+      BEGIN OF c_application_description,
+        syst   TYPE ddtext VALUE 'System PSE',
+        sncs   TYPE ddtext VALUE 'SNC SAP Cryptolib',
+        file   TYPE ddtext VALUE 'Files',
+        ssls   TYPE ddtext VALUE 'SSL backward compatibility',
+        spki   TYPE ddtext VALUE 'System PKI',
+        dfault TYPE ddtext VALUE 'SSL Client/Server, WSS, SMIME: Standard',
+        anonym TYPE ddtext VALUE 'SSL Client: Anonymous',
+        sapsup TYPE ddtext VALUE 'SSL Client: SAP Support Portal',
+        wsse   TYPE ddtext VALUE 'SSL Client: Web Service Security Test',
+        wsscrt TYPE ddtext VALUE 'Other System Encryption Certificates',
+        wsskey TYPE ddtext VALUE 'WS Security Keys',
+      END OF c_application_description.
 
     TYPES:
       ty_line        TYPE c LENGTH 80,
@@ -132,6 +153,14 @@ CLASS /apmg/cl_strust DEFINITION
         VALUE(result)   TYPE ty_update_result
       RAISING
         /apmg/cx_error.
+
+    CLASS-METHODS f4_context
+      RETURNING
+        VALUE(result) TYPE psecontext.
+
+    CLASS-METHODS f4_application
+      RETURNING
+        VALUE(result) TYPE ssfappl.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -309,6 +338,116 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       context     = context
       application = application
       password    = password ).
+
+  ENDMETHOD.
+
+
+  METHOD f4_application.
+
+    TYPES:
+      BEGIN OF ty_value,
+        field TYPE ssfappl,
+        text  TYPE ddtext,
+      END OF ty_value,
+      ty_values TYPE STANDARD TABLE OF ty_value WITH DEFAULT KEY.
+
+    DATA:
+      value_tab  TYPE ty_values,
+      return_tab TYPE STANDARD TABLE OF ddshretval WITH DEFAULT KEY.
+
+    FIELD-SYMBOLS:
+      <field>  TYPE ty_value-field,
+      <text>   TYPE ty_value-text,
+      <value>  LIKE LINE OF value_tab,
+      <return> LIKE LINE OF return_tab.
+
+    DO.
+      ASSIGN COMPONENT sy-index OF STRUCTURE c_application TO <field>.
+      IF sy-subrc <> 0.
+        EXIT.
+      ENDIF.
+      ASSIGN COMPONENT sy-index OF STRUCTURE c_application_description TO <text>.
+      IF sy-subrc <> 0.
+        EXIT.
+      ENDIF.
+      APPEND INITIAL LINE TO value_tab ASSIGNING <value>.
+      <value>-field = <field>.
+      <value>-text  = <text>.
+    ENDDO.
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+        retfield        = 'FIELD'
+        window_title    = 'Application'
+        value_org       = 'S' "single
+      TABLES
+        value_tab       = value_tab
+        return_tab      = return_tab
+      EXCEPTIONS
+        parameter_error = 1
+        no_values_found = 2
+        OTHERS          = 3 ##NO_TEXT.
+    CHECK sy-subrc = 0.
+
+    READ TABLE return_tab ASSIGNING <return> INDEX 1.
+    IF sy-subrc = 0.
+      result = <return>-fieldval.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD f4_context.
+
+    TYPES:
+      BEGIN OF ty_value,
+        field TYPE psecontext,
+        text  TYPE ddtext,
+      END OF ty_value,
+      ty_values TYPE STANDARD TABLE OF ty_value WITH DEFAULT KEY.
+
+    DATA:
+      value_tab  TYPE ty_values,
+      return_tab TYPE STANDARD TABLE OF ddshretval WITH DEFAULT KEY.
+
+    FIELD-SYMBOLS:
+      <field>  TYPE ty_value-field,
+      <text>   TYPE ty_value-text,
+      <value>  LIKE LINE OF value_tab,
+      <return> LIKE LINE OF return_tab.
+
+    DO.
+      ASSIGN COMPONENT sy-index OF STRUCTURE c_context TO <field>.
+      IF sy-subrc <> 0.
+        EXIT.
+      ENDIF.
+      ASSIGN COMPONENT sy-index OF STRUCTURE c_context_description TO <text>.
+      IF sy-subrc <> 0.
+        EXIT.
+      ENDIF.
+      APPEND INITIAL LINE TO value_tab ASSIGNING <value>.
+      <value>-field = <field>.
+      <value>-text  = <text>.
+    ENDDO.
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+        retfield        = 'FIELD'
+        window_title    = 'Context'
+        value_org       = 'S' "single
+      TABLES
+        value_tab       = value_tab
+        return_tab      = return_tab
+      EXCEPTIONS
+        parameter_error = 1
+        no_values_found = 2
+        OTHERS          = 3 ##NO_TEXT.
+    CHECK sy-subrc = 0.
+
+    READ TABLE return_tab ASSIGNING <return> INDEX 1.
+    IF sy-subrc = 0.
+      result = <return>-fieldval.
+    ENDIF.
 
   ENDMETHOD.
 
