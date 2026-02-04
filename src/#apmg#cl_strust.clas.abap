@@ -349,11 +349,11 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
         field TYPE ssfappl,
         text  TYPE ddtext,
       END OF ty_value,
-      ty_values TYPE STANDARD TABLE OF ty_value WITH DEFAULT KEY.
+      ty_values TYPE STANDARD TABLE OF ty_value WITH KEY field.
 
     DATA:
       value_tab  TYPE ty_values,
-      return_tab TYPE STANDARD TABLE OF ddshretval WITH DEFAULT KEY.
+      return_tab TYPE STANDARD TABLE OF ddshretval WITH KEY shlpname fieldname recordpos.
 
     FIELD-SYMBOLS:
       <field>  TYPE ty_value-field,
@@ -404,11 +404,11 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
         field TYPE psecontext,
         text  TYPE ddtext,
       END OF ty_value,
-      ty_values TYPE STANDARD TABLE OF ty_value WITH DEFAULT KEY.
+      ty_values TYPE STANDARD TABLE OF ty_value WITH KEY field.
 
     DATA:
       value_tab  TYPE ty_values,
-      return_tab TYPE STANDARD TABLE OF ddshretval WITH DEFAULT KEY.
+      return_tab TYPE STANDARD TABLE OF ddshretval WITH KEY shlpname fieldname recordpos.
 
     FIELD-SYMBOLS:
       <field>  TYPE ty_value-field,
