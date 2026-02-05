@@ -57,6 +57,14 @@ INITIALIZATION.
   p_host   = /apmg/cl_strust_cert_api=>c_api_host.
   p_endpnt = /apmg/cl_strust_cert_api=>c_api_endpoint.
 
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_cont.
+
+  p_cont = /apmg/cl_strust=>f4_context( ).
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_appl.
+
+  p_appl = /apmg/cl_strust=>f4_application( ).
+
 START-OF-SELECTION.
 
   IF p_root IS INITIAL AND p_main IS INITIAL.
