@@ -6,6 +6,10 @@
    <MASTER_LANGUAGE>E</MASTER_LANGUAGE>
    <STARTING_FOLDER>/src/</STARTING_FOLDER>
    <FOLDER_LOGIC>PREFIX</FOLDER_LOGIC>
+   <IGNORE>
+    <item>!/package.abap.json</item>
+    <item>!/README.md</item>
+   </IGNORE>
    <REQUIREMENTS>
     <item>
      <COMPONENT>SAP_BASIS</COMPONENT>
