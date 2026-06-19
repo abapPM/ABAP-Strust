@@ -17,13 +17,13 @@
   "author": {
     "name": "Marc Bernard",
     "url": "https://abappm.com",
-    "email": "marc@abappm.com"
+    "email": "marc@mail.abappm.com"
   },
   "maintainers": [
     {
       "name": "Marc Bernard",
       "url": "https://github.com/mbtools",
-      "email": "marc@abappm.com"
+      "email": "mbtools@mail.abappm.com"
     }
   ],
   "repository": {
