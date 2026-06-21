@@ -11,6 +11,9 @@ CLASS /apmg/cl_strust DEFINITION
 * Copyright 2024 apm.to Inc. <https://apm.to>
 * SPDX-License-Identifier: MIT
 ************************************************************************
+* TODO: Separate logging to this class can be installed without it
+************************************************************************
+
   PUBLIC SECTION.
 
     CONSTANTS c_version TYPE string VALUE '2.3.0' ##NEEDED.
