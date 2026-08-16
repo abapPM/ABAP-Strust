@@ -16,7 +16,7 @@ CLASS /apmg/cl_strust DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.3.0' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.4.0' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context,
@@ -168,9 +168,17 @@ CLASS /apmg/cl_strust DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    CONSTANTS:
+      BEGIN OF c_activity,
+        create  TYPE activ_auth VALUE '01',
+        change  TYPE activ_auth VALUE '02',
+        display TYPE activ_auth VALUE '03',
+        delete  TYPE activ_auth VALUE '06',
+      END OF c_activity.
+
     DATA:
       context       TYPE psecontext,
-      applic        TYPE ssfappl,
+      application   TYPE ssfappl,
       psename       TYPE ssfpsename,
       psetext       TYPE strustappltxt ##NEEDED,
       distrib       TYPE ssfflag,
@@ -310,14 +318,19 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
     DATA profile TYPE localfile.
 
-    me->context = context.
-    me->applic  = application.
-    profilepw   = password.
+    me->context     = context.
+    me->application = application.
+    profilepw       = password.
+
+    cl_abap_pse=>authority_check(
+      iv_context  = context
+      iv_applic   = application
+      iv_activity = c_activity-display ).
 
     CALL FUNCTION 'SSFPSE_FILENAME'
       EXPORTING
         context       = context
-        applic        = applic
+        applic        = application
       IMPORTING
         psename       = psename
         psetext       = psetext
@@ -659,6 +672,11 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
           DATA(tabix) = sy-tabix.
 
           IF <cert_new>-date_to > <cert>-date_to.
+            cl_abap_pse=>authority_check(
+              iv_context  = context
+              iv_applic   = application
+              iv_activity = c_activity-delete ).
+
             " Certificate is newer, so remove the old certificate
             CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
               EXPORTING
@@ -758,9 +776,14 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       subject     TYPE certsubjct,
       psepath     TYPE trfile.
 
+    cl_abap_pse=>authority_check(
+      iv_context  = context
+      iv_applic   = application
+      iv_activity = c_activity-create ).
+
     " Create new PSE (using RSA-SHA256 2048 which is the default in STRUST in recent releases)
     IF id IS INITIAL.
-      CASE applic.
+      CASE application.
         WHEN 'DFAULT'.
           new_id = `CN=%SID SSL client SSL Client (Standard), ` &&
                   `OU=I%LIC, OU=SAP Web AS, O=SAP Trust Community, C=DE` ##NO_TEXT.
@@ -872,6 +895,11 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
     DATA cred_name TYPE icm_credname.
 
     CHECK is_dirty = abap_true.
+
+    cl_abap_pse=>authority_check(
+      iv_context  = context
+      iv_applic   = application
+      iv_activity = c_activity-change ).
 
     " Store PSE
     CALL FUNCTION 'SSFPSE_STORE'
