@@ -67,6 +67,18 @@ ELSE.
 ENDIF.
 ```
 
+The certificate for the `add` method needs to be provided as a table with the following format:
+
+```txt
+-----BEGIN CERTIFICATE-----
+MIIGQDCCBSigAwIBAgIQCNqWSvYNNa9hfOzsk89rUjANBgkqhkiG9w0BAQsFADBg
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+...
+-----END CERTIFICATE-----
+```
+
+Alternatively, use the method `add_pem` to pass the certificate as a string.
+
 ### Import an own-certificate response
 
 Import a PEM certificate chain into the same PSE and key pair that generated its CSR:
@@ -79,18 +91,6 @@ strust->load( )->import_certificate_response( pem_chain ).
 ```
 
 The method stores and distributes the PSE and notifies ICM through the existing save path.
-
-The certificate for the `add` method needs to be provided as a table with the following format:
-
-```txt
------BEGIN CERTIFICATE-----
-MIIGQDCCBSigAwIBAgIQCNqWSvYNNa9hfOzsk89rUjANBgkqhkiG9w0BAQsFADBg
-MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
-...
------END CERTIFICATE-----
-```
-
-Alternatively, use the method `add_pem` to pass the certificate as a string.
 
 ## Prerequisites
 
