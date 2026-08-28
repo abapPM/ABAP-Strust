@@ -84,7 +84,7 @@ Alternatively, use the method `add_pem` to pass the certificate as a string.
 - SAP Basis 7.50 or higher
 - Packages:
   - [`ajson`](https://github.com/sbcgua/ajson)
-  - [`error`](https://github.com/abapPM/ABAP-Error)
+  - [`exeptions`](https://github.com/abapPM/ABAP-Exceptions)
   - [`distinguished-name`](https://github.com/abapPM/ABAP-Distinguished-Name)
 
 ## Installation
