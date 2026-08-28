@@ -8,7 +8,7 @@ CLASS /apmg/cl_strust DEFINITION
 *
 * Add, update, or remove certificates from ABAP Trust Management
 *
-* Copyright 2024 apm.to Inc. <https://apm.to>
+* Copyright 2026 apm.to Inc. <https://apm.to>
 * SPDX-License-Identifier: MIT
 ************************************************************************
 * TODO: Separate logging to this class can be installed without it
