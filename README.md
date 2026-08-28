@@ -67,6 +67,19 @@ ELSE.
 ENDIF.
 ```
 
+### Import an own-certificate response
+
+Import a PEM certificate chain into the same PSE and key pair that generated its CSR:
+
+```abap
+DATA(strust) = /apmg/cl_strust=>create(
+  context     = /apmg/cl_strust=>c_context-ssls
+  application = /apmg/cl_strust=>c_application-dfault ).
+strust->load( )->import_certificate_response( pem_chain ).
+```
+
+The method stores and distributes the PSE and notifies ICM through the existing save path.
+
 The certificate for the `add` method needs to be provided as a table with the following format:
 
 ```txt

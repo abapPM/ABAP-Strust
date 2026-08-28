@@ -16,7 +16,7 @@ CLASS /apmg/cl_strust DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.4.0' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.5.0' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context,
@@ -121,6 +121,14 @@ CLASS /apmg/cl_strust DEFINITION
     METHODS add_pem
       IMPORTING
         !pem          TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO /apmg/cl_strust
+      RAISING
+        /apmg/cx_error.
+
+    METHODS import_certificate_response
+      IMPORTING
+        !pem_chain    TYPE string
       RETURNING
         VALUE(result) TYPE REF TO /apmg/cl_strust
       RAISING
@@ -309,6 +317,74 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
     add( certificate ).
 
+    result = me.
+
+  ENDMETHOD.
+
+
+  METHOD import_certificate_response.
+
+    DATA response TYPE STANDARD TABLE OF ssfbin WITH EMPTY KEY.
+    DATA response_length TYPE ssflen.
+
+    _profile( ).
+    DATA(authority_subrc) = cl_abap_pse=>authority_check(
+      iv_context  = context
+      iv_applic   = application
+      iv_activity = c_activity-change ).
+    IF authority_subrc <> 0.
+      _unlock( ).
+      RAISE EXCEPTION TYPE /apmg/cx_error_text
+        EXPORTING text = `Not authorized to import an own-certificate response`.
+    ENDIF.
+    IF pem_chain IS INITIAL
+      OR pem_chain NS `-----BEGIN CERTIFICATE-----`
+      OR pem_chain NS `-----END CERTIFICATE-----`
+      OR pem_chain CS `PRIVATE KEY`.
+      _unlock( ).
+      RAISE EXCEPTION TYPE /apmg/cx_error_text
+        EXPORTING text = `Invalid own-certificate response`.
+    ENDIF.
+
+    TRY.
+        DATA(response_raw) = cl_abap_codepage=>convert_to(
+          source   = pem_chain
+          codepage = `UTF-8` ).
+      CATCH cx_sy_conversion_codepage INTO DATA(codepage_error).
+        _unlock( ).
+        RAISE EXCEPTION TYPE /apmg/cx_error_text
+          EXPORTING
+            text     = codepage_error->get_text( )
+            previous = codepage_error.
+    ENDTRY.
+    response_length = xstrlen( response_raw ).
+    CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+      EXPORTING
+        buffer     = response_raw
+      TABLES
+        binary_tab = response.
+
+    CALL FUNCTION 'SSFC_PUTCERTIFICATERESPONSE'
+      EXPORTING
+        profile                     = profile
+        profilepw                   = profilepw
+        certresponse_len            = response_length
+      TABLES
+        certresponse                = response
+      EXCEPTIONS
+        ssf_krn_error               = 1
+        ssf_krn_nomemory            = 2
+        ssf_krn_nossflib            = 3
+        ssf_krn_invalid_par         = 4
+        ssf_krn_invalidcertresponse = 5
+        OTHERS                      = 6.
+    IF sy-subrc <> 0.
+      _unlock( ).
+      RAISE EXCEPTION TYPE /apmg/cx_error_t100.
+    ENDIF.
+
+    is_dirty = abap_true.
+    _save( ).
     result = me.
 
   ENDMETHOD.
