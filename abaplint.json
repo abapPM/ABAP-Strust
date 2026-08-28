@@ -8,7 +8,7 @@
     {
       "files": "/src/**/*.*",
       "folder": "/deps2",
-      "url": "https://github.com/abapPM/ABAP-Error"
+      "url": "https://github.com/abapPM/ABAP-Exceptions"
     },
     {
       "files": "/src/**/*.*",
