@@ -526,8 +526,9 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
         RAISE EXCEPTION TYPE /apmg/cx_error_t100.
       ENDIF.
 
-      certificate-date_from = certificate-validfrom(8).
-      certificate-date_to   = certificate-validto(8).
+      certificate-certificate = <certlist>.
+      certificate-date_from   = certificate-validfrom(8).
+      certificate-date_to     = certificate-validto(8).
       APPEND certificate TO certs_current.
 
     ENDLOOP.
@@ -589,7 +590,7 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
 
   METHOD import_certificate_response.
 
-    DATA response TYPE STANDARD TABLE OF ssfbin WITH EMPTY KEY.
+    DATA response TYPE cl_abap_pse=>certreqtab.
     DATA response_length TYPE ssflen.
 
     _profile( ).
@@ -601,7 +602,8 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
     IF authority_subrc <> 0.
       _unlock( ).
       RAISE EXCEPTION TYPE /apmg/cx_error_text
-        EXPORTING text = `Not authorized to import an own-certificate response`.
+        EXPORTING
+          text = `Not authorized to import an own-certificate response`.
     ENDIF.
 
     IF pem_chain IS INITIAL
@@ -610,28 +612,17 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       OR pem_chain CS `PRIVATE KEY`.
       _unlock( ).
       RAISE EXCEPTION TYPE /apmg/cx_error_text
-        EXPORTING text = `Invalid own-certificate response`.
+        EXPORTING
+          text = `Invalid own-certificate response`.
     ENDIF.
 
-    TRY.
-        DATA(response_raw) = cl_abap_codepage=>convert_to(
-          source   = pem_chain
-          codepage = `UTF-8` ).
-      CATCH cx_sy_conversion_codepage INTO DATA(codepage_error).
-        _unlock( ).
-        RAISE EXCEPTION TYPE /apmg/cx_error_text
-          EXPORTING
-            text     = codepage_error->get_text( )
-            previous = codepage_error.
-    ENDTRY.
+    response_length = strlen( pem_chain ).
 
-    response_length = xstrlen( response_raw ).
-
-    CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+    cl_abap_pse=>convert_string_to_certreqtab(
       EXPORTING
-        buffer     = response_raw
-      TABLES
-        binary_tab = response.
+        iv_string     = pem_chain
+      IMPORTING
+        et_certreqtab = response ).
 
     CALL FUNCTION 'SSFC_PUTCERTIFICATERESPONSE'
       EXPORTING
