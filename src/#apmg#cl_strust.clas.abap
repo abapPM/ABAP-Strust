@@ -126,14 +126,6 @@ CLASS /apmg/cl_strust DEFINITION
       RAISING
         /apmg/cx_error.
 
-    METHODS generate_certificate_request
-      IMPORTING
-        !identifiers  TYPE string_table
-      RETURNING
-        VALUE(result) TYPE ty_certificate
-      RAISING
-        /apmg/cx_error.
-
     METHODS get_own_certificate
       RETURNING
         VALUE(result) TYPE ty_certattr
@@ -162,6 +154,14 @@ CLASS /apmg/cl_strust DEFINITION
           PREFERRED PARAMETER comment
       RETURNING
         VALUE(result)   TYPE ty_update_result
+      RAISING
+        /apmg/cx_error.
+
+    METHODS generate_certificate_request
+      IMPORTING
+        !identifiers  TYPE string_table
+      RETURNING
+        VALUE(result) TYPE ty_certificate
       RAISING
         /apmg/cx_error.
 
@@ -330,44 +330,6 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD generate_certificate_request.
-
-    DATA parameters TYPE ssf_parameter_t.
-
-    LOOP AT identifiers INTO DATA(identifier).
-      INSERT VALUE #(
-        type  = `AlternativeName`
-        value = identifier )
-        INTO TABLE parameters.
-    ENDLOOP.
-
-    TRY.
-        DATA(pse) = NEW cl_abap_pse(
-          iv_context      = context
-          iv_application  = application
-          iv_load_from_db = abap_true ).
-
-        pse->gen_signing_request(
-          EXPORTING
-            it_parameters      = parameters
-          IMPORTING
-            et_signing_request = result ).
-      CATCH cx_abap_pse INTO DATA(pse_error).
-        RAISE EXCEPTION TYPE /apmg/cx_error_text
-          EXPORTING
-            text     = pse_error->get_text( )
-            previous = pse_error.
-    ENDTRY.
-
-    IF result IS INITIAL.
-      RAISE EXCEPTION TYPE /apmg/cx_error_text
-        EXPORTING
-          text = `PSE returned an empty certificate signing request`.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD constructor.
 
     DATA profile TYPE localfile.
@@ -517,6 +479,50 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
     READ TABLE return_tab ASSIGNING <return> INDEX 1.
     IF sy-subrc = 0.
       result = <return>-fieldval.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD generate_certificate_request.
+
+    DATA parameters TYPE ssf_parameter_t.
+    DATA signing_request TYPE cl_abap_pse=>certreqtab.
+
+    LOOP AT identifiers INTO DATA(identifier).
+      INSERT VALUE #(
+        type  = `AlternativeName`
+        value = identifier )
+        INTO TABLE parameters.
+    ENDLOOP.
+
+    TRY.
+        DATA(pse) = NEW cl_abap_pse(
+          iv_context      = context
+          iv_application  = application
+          iv_load_from_db = abap_true ).
+
+        pse->gen_signing_request(
+          EXPORTING
+            it_parameters      = parameters
+          IMPORTING
+            et_signing_request = signing_request ).
+
+      CATCH cx_abap_pse INTO DATA(pse_error).
+        RAISE EXCEPTION TYPE /apmg/cx_error_text
+          EXPORTING
+            text     = pse_error->get_text( )
+            previous = pse_error.
+    ENDTRY.
+
+    LOOP AT signing_request ASSIGNING FIELD-SYMBOL(<line>).
+      INSERT <line>-line INTO TABLE result.
+    ENDLOOP.
+
+    IF result IS INITIAL.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text
+        EXPORTING
+          text = `PSE returned an empty certificate signing request`.
     ENDIF.
 
   ENDMETHOD.
