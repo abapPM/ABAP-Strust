@@ -16,7 +16,7 @@ CLASS /apmg/cl_strust DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE '2.5.0' ##NEEDED.
+    CONSTANTS c_version TYPE string VALUE '2.6.0' ##NEEDED.
 
     CONSTANTS:
       BEGIN OF c_context,
@@ -123,6 +123,14 @@ CLASS /apmg/cl_strust DEFINITION
         !pem          TYPE string
       RETURNING
         VALUE(result) TYPE REF TO /apmg/cl_strust
+      RAISING
+        /apmg/cx_error.
+
+    METHODS generate_certificate_request
+      IMPORTING
+        !identifiers  TYPE string_table
+      RETURNING
+        VALUE(result) TYPE ty_certificate
       RAISING
         /apmg/cx_error.
 
@@ -318,6 +326,44 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
     add( certificate ).
 
     result = me.
+
+  ENDMETHOD.
+
+
+  METHOD generate_certificate_request.
+
+    DATA parameters TYPE ssf_parameter_t.
+
+    LOOP AT identifiers INTO DATA(identifier).
+      INSERT VALUE #(
+        type  = `AlternativeName`
+        value = identifier )
+        INTO TABLE parameters.
+    ENDLOOP.
+
+    TRY.
+        DATA(pse) = NEW cl_abap_pse(
+          iv_context      = context
+          iv_application  = application
+          iv_load_from_db = abap_true ).
+
+        pse->gen_signing_request(
+          EXPORTING
+            it_parameters      = parameters
+          IMPORTING
+            et_signing_request = result ).
+      CATCH cx_abap_pse INTO DATA(pse_error).
+        RAISE EXCEPTION TYPE /apmg/cx_error_text
+          EXPORTING
+            text     = pse_error->get_text( )
+            previous = pse_error.
+    ENDTRY.
+
+    IF result IS INITIAL.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text
+        EXPORTING
+          text = `PSE returned an empty certificate signing request`.
+    ENDIF.
 
   ENDMETHOD.
 
