@@ -79,18 +79,29 @@ MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 
 Alternatively, use the method `add_pem` to pass the certificate as a string.
 
-### Import an own-certificate response
+### SSL Server Certificate Request and Response
 
-Import a PEM certificate chain into the same PSE and key pair that generated its CSR:
+Generate a certificate request for signing (CSR) using the following method. Optionally, pass a list of identifiers (DNS-SAN):
 
 ```abap
 DATA(strust) = /apmg/cl_strust=>create(
   context     = /apmg/cl_strust=>c_context-ssls
   application = /apmg/cl_strust=>c_application-dfault ).
-strust->load( )->import_certificate_response( pem_chain ).
+
+DATA(signing_request) = strust->generate_certificate_request( identifiers ).
 ```
 
-The method stores and distributes the PSE and notifies ICM through the existing save path.
+Import a signed certificate chain (PEM) into the SSL Server:
+
+```abap
+DATA(strust) = /apmg/cl_strust=>create(
+  context     = /apmg/cl_strust=>c_context-ssls
+  application = /apmg/cl_strust=>c_application-dfault ).
+
+strust->load( )->import_certificate_response( signed_response ).
+```
+
+The method stores and distributes the certificate notifying Internet Connection Manager (ICM).
 
 ## Prerequisites
 
