@@ -632,8 +632,9 @@ CLASS /apmg/cl_strust IMPLEMENTATION.
       RAISE EXCEPTION TYPE /apmg/cx_error_t100.
     ENDIF.
 
-    cert_current-date_from = cert_current-validfrom(8).
-    cert_current-date_to   = cert_current-validto(8).
+    cert_current-certificate = cert_own.
+    cert_current-date_from   = cert_current-validfrom(8).
+    cert_current-date_to     = cert_current-validto(8).
 
     result = cert_current.
 
