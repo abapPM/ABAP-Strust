@@ -255,7 +255,7 @@
     "prefer_abap_bool_values": true,
     "prefer_corresponding": true,
     "prefer_inline": true,
-    "prefer_insert_into_table": true,
+    "prefer_insert_into_table": false,
     "prefer_is_not": true,
     "prefer_pragmas": true,
     "prefer_raise_exception_new": true,
