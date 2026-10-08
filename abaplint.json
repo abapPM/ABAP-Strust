@@ -35,7 +35,7 @@
     "useApackDependencies": false
   },
   "rules": {
-    "7bit_ascii": false,
+    "7bit_ascii": true,
     "abapdoc": false,
     "add_test_attributes": true,
     "aff_and_xml": true,
